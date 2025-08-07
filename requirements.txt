@@ -1,0 +1,6 @@
+streamlit
+crewai
+crewai-tools
+langchain_google_genai
+google-generativeai >=1.0.0
+python-docx
