@@ -4,7 +4,7 @@ sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 import streamlit as st
 import os
 from crewai import Agent, Task, Crew, Process, LLM
-from langchain_google_genai import ChatGoogleGenerativeAI, Modality
+from langchain_google_genai import ChatGoogleGenerativeAI
 from crewai_tools import SerperDevTool, ScrapeWebsiteTool, FileReadTool
 from datetime import datetime
 from docx import Document
