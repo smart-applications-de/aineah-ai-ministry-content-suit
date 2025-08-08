@@ -1,27 +1,3 @@
-# --- Virtual Environment Setup Guide ---
-# To ensure a clean and isolated environment for this project, it's highly recommended to use a Python virtual environment.
-# Follow these steps in your terminal:
-#
-# 1. Navigate to your project directory:
-#    cd path/to/your/project
-#
-# 2. Create a virtual environment (e.g., named 'venv'):
-#    python -m venv venv
-#
-# 3. Activate the virtual environment:
-#    - On Windows:
-#      .\venv\Scripts\activate
-#    - On macOS & Linux:
-#      source venv/bin/activate
-#
-# 4. Once activated, install the required libraries listed below.
-
-# --- Installation ---
-# To run this Streamlit application, you need to install the following libraries.
-# NOTE: Specific versions are pinned to resolve dependency conflicts between the Google AI libraries.
-# This setup allows both 'langchain_google_genai' and 'google-generativeai' (for VEO/Lyria) to coexist.
-# You can install them using pip:
-# pip install streamlit crewai crewai-tools langchain_google_genai==1.0.2 google-generativeai==0.5.4 python-docx Pillow
 __import__('pysqlite3')
 import sys
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
