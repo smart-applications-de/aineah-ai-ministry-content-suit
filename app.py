@@ -33,7 +33,7 @@ import google.generativeai as genai
 import time
 import asyncio
 import wave
-
+#from google import genai
 # --- App Configuration ---
 st.set_page_config(
     page_title="AI Ministry Suite",
@@ -251,7 +251,8 @@ def create_flyer_and_copy(api_key, topic, text_element, flyer_type, text_model_n
             crew_result = flyer_crew.kickoff()
             st.write(crew_result.tasks_output[2].raw)
             image_prompt = crew_result.tasks_output[2].raw
-            social_copy = crew_result.tasks_output[3].raw
+            social_copy=crew_result.tasks_output[3].raw
+            #st.markdown(crew_result.tasks_output[3].raw)
             st.success("Concept approved! Prompt and copy are ready.")
             st.subheader("🎨 Generated Image Prompt")
             st.code(image_prompt, language="text")
@@ -877,10 +878,211 @@ def create_and_run_viral_video_crew(api_key, serper_api_key, topic_or_verse, mod
 
         try:
             final_prompt = crew.kickoff()
+            st.markdown(final_prompt)
             st.session_state["veo_prompt"] = final_prompt # Save the prompt to session state
             
         except Exception as e:
             st.error(f"An error occurred while creating the video concept: {e}")
+
+
+# Function to handle the video generation and display
+def single_render_viral_video_page():
+    """Renders the Viral Video Studio page in Streamlit."""
+    st.title("🎬 Single Viral Video Studio")
+    st.markdown(
+        """
+    Unleash your creativity! Use AI to generate a compelling 8-second vertical video from your text prompt.
+    """
+    )
+
+    # Get the Gemini API key from the user
+    api_key = st.text_input("Enter your Gemini API Key:", type="password")
+
+    if not api_key:
+        st.warning("Please enter your Gemini API Key to proceed.")
+        return
+
+    # Initialize the client with the provided API key
+    try:
+        genai.configure(api_key=api_key)
+        client = genai.Client()
+    except Exception as e:
+        st.error(f"Failed to configure the Gemini client: {e}")
+        return
+
+    # User input for the video prompt
+    prompt = st.text_area(
+        "Enter your video prompt here:",
+        value="A close up of two people staring at a cryptic drawing on a wall, torchlight flickering. A man murmurs, 'This must be it. That's the secret code.' The woman looks at him and whispering excitedly, 'What did you find?'",
+        height=150,
+    )
+
+    if st.button("Generate Video"):
+        if prompt:
+            try:
+                with st.spinner("Generating video... This may take a few minutes."):
+                    # Use the provided code to generate the video
+                    operation = client.models.generate_videos(
+                        model="veo-3.0-generate-preview",
+                        prompt=prompt,
+                    )
+
+                    # Poll the operation status until the video is ready.
+                    status_placeholder = st.empty()
+                    while not operation.done:
+                        status_placeholder.info("Waiting for video generation to complete...")
+                        time.sleep(10)
+                        operation = client.operations.get(operation.name)
+
+                    status_placeholder.success("Video generation complete!")
+
+                    # Download the generated video.
+                    generated_video = operation.response.generated_videos[0]
+                    video_bytes_content = client.files.download(name=generated_video.video.name).content
+
+                # Display the video in Streamlit
+                st.subheader("Your Generated Video:")
+                st.video(video_bytes_content)
+
+                # Add a download button for the video
+                st.download_button(
+                    label="⬇️ Download Video",
+                    data=video_bytes_content,
+                    file_name="generated_veo_video.mp4",
+                    mime="video/mp4",
+                )
+
+            except Exception as e:
+                st.error(f"An error occurred during video generation: {e}")
+                st.info("Please ensure you have access to the VEO model with your Gemini API key.")
+        else:
+            st.warning("Please enter a prompt to generate a video.")
+
+
+def render_viral_video_page():
+    """Renders the Viral Video Studio page in Streamlit with image and text input options."""
+    st.title("🎬 Viral Video Studio")
+    st.markdown(
+        """
+    Unleash your creativity! Use AI to generate a compelling 8-second vertical video. You can create a video from a text prompt alone, or use an initial image to guide the generation.
+    """
+    )
+
+    api_key = st.text_input("Enter your Gemini API Key:", type="password")
+
+    if not api_key:
+        st.warning("Please enter your Gemini API Key to proceed.")
+        return
+
+    try:
+        genai.configure(api_key=api_key)
+        client = genai.Client()
+    except Exception as e:
+        st.error(f"Failed to configure the Gemini client: {e}")
+        return
+
+    # User input for the video prompt
+    prompt = st.text_area(
+        "Enter your video prompt here:",
+        value="A close up of two people staring at a cryptic drawing on a wall, torchlight flickering. A man murmurs, 'This must be it. That's the secret code.' The woman looks at him and whispering excitedly, 'What did you find?'",
+        height=150,
+    )
+
+    # Image input options
+    st.subheader("Add an initial image (optional)")
+    image_option = st.radio(
+        "Choose an option for the initial image:",
+        ("Use a prompt to generate an image", "Upload multiple images", "No image"),
+        index=2
+    )
+
+    initial_image = None
+    if image_option == "Use a prompt to generate an image":
+        image_prompt = st.text_input(
+            "Enter a prompt to generate the initial image:",
+            value="A calico kitten sleeping in the sunshine."
+        )
+        if image_prompt and st.button("Generate Image"):
+            with st.spinner("Generating initial image with Imagen..."):
+                try:
+                    imagen_response = client.models.generate_images(
+                        model="imagen-3.0-generate-002",
+                        prompt=image_prompt
+                    )
+                    st.success("Image generated successfully.")
+
+                    # Display the generated image
+                    img_byte_arr = BytesIO()
+                    imagen_response.generated_images[0].image.save(img_byte_arr)
+                    initial_image = img_byte_arr
+                    st.image(initial_image.getvalue(), caption="Generated Initial Image")
+
+                except Exception as e:
+                    st.error(f"An error occurred during image generation: {e}")
+                    initial_image = None
+
+    elif image_option == "Upload multiple images":
+        uploaded_files = st.file_uploader("Upload multiple images (PNG, JPG)", type=["png", "jpg", "jpeg"],
+                                          accept_multiple_files=True)
+        if uploaded_files:
+            # We will use the first uploaded image as the initial image
+            st.info("Using the first uploaded image as the initial image for the video.")
+            first_image_bytes = uploaded_files[0].getvalue()
+            initial_image = BytesIO(first_image_bytes)
+            st.image(initial_image.getvalue(), caption="Uploaded Initial Image")
+
+    if st.button("Generate Video"):
+        if not prompt:
+            st.warning("Please enter a prompt to generate a video.")
+            return
+
+        try:
+            with st.spinner("Generating video... This may take a few minutes."):
+
+                # Check for initial image and prepare it for the API call
+                veo_kwargs = {"prompt": prompt}
+                if initial_image:
+                    # Upload the image to the VEO service
+                    image_file = client.files.upload(
+                        file=initial_image,
+                        display_name="Initial image for VEO video"
+                    )
+                    veo_kwargs["image"] = image_file
+
+                # Generate the video
+                operation = client.models.generate_videos(
+                    model="veo-3.0-generate-preview",
+                    **veo_kwargs
+                )
+
+                # Poll the operation status until the video is ready.
+                status_placeholder = st.empty()
+                while not operation.done:
+                    status_placeholder.info("Waiting for video generation to complete...")
+                    time.sleep(10)
+                    operation = client.operations.get(operation.name)
+
+                status_placeholder.success("Video generation complete!")
+
+                # Download the generated video.
+                generated_video = operation.response.generated_videos[0]
+                video_bytes_content = client.files.download(name=generated_video.video.name).content
+
+            # Display the video in Streamlit
+            st.subheader("Your Generated Video:")
+            st.video(video_bytes_content)
+
+            # Add a download button for the video
+            st.download_button(
+                label="⬇️ Download Video",
+                data=video_bytes_content,
+                file_name="generated_veo_video.mp4",
+                mime="video/mp4",
+            )
+
+        except Exception as e:
+            st.error(f"An error occurred during video generation: {e}")
+            st.info("Please ensure you have access to the VEO model with your Gemini API key.")
 
 
 # --- MAIN APP ROUTER ---
@@ -895,7 +1097,8 @@ def main():
         "Book Writing Studio": "📚",
         "Bible Study Generator": "🌍",
         "Newsroom HQ": "📰",
-        "Viral Video Studio": "🎬"
+        "Viral Video Studio": "📝",
+        "Single Video Studio":"🎬"
     }
     selection = st.sidebar.radio("Go to", list(page_options.keys()))
 
@@ -935,6 +1138,8 @@ def main():
         render_news_page()
     elif selection == "Viral Video Studio":
         render_viral_video_page()
+    elif selection == "Single Video Studio":
+        single_render_viral_video_page()
 
 
 if __name__ == "__main__":
