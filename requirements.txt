@@ -4,9 +4,9 @@ google-api-core==2.25.1
 google-api-python-client==2.178.0
 google-auth==2.40.3
 google-auth-httplib2==0.2.0
-google-genai==1.29.0
-google-generativeai==0.8.5
-langchain-google-genai==2.1.9
+google-genai
+google-generativeai
+langchain-google-genai
 langchain-openai==0.2.14
 langchain-text-splitters==0.3.9
 langsmith==0.3.45
