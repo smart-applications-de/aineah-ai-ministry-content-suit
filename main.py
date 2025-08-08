@@ -22,7 +22,9 @@
 # This setup allows both 'langchain_google_genai' and 'google-generativeai' (for VEO/Lyria) to coexist.
 # You can install them using pip:
 # pip install streamlit crewai crewai-tools langchain_google_genai==1.0.2 google-generativeai==0.5.4 python-docx Pillow
-
+__import__('pysqlite3')
+import sys
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 import streamlit as st
 import os
 from crewai import Agent, Task, Crew, Process, LLM
