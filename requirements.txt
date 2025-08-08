@@ -1,4 +1,4 @@
-sqlite3
+
 crewai==0.157.0
 crewai-tools==0.60.0
 google-api-core==2.25.1
