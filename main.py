@@ -3,6 +3,7 @@ import sys
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 import streamlit as st
 import os
+import io
 from crewai import Agent, Task, Crew, Process, LLM
 from langchain_google_genai import ChatGoogleGenerativeAI
 from crewai_tools import SerperDevTool, ScrapeWebsiteTool, FileReadTool
@@ -13,10 +14,13 @@ import google.generativeai as genai
 import time
 import asyncio
 import wave
+import docx
 import base64
 #from google import gen
 from PIL import Image
-
+import pypdf
+import markdown2
+from google.api_core import exceptions
 # --- App Configuration ---
 st.set_page_config(
     page_title="AI Ministry & Content Suite",
@@ -115,12 +119,76 @@ def get_available_models(api_key, task="generateContent"):
             m.name for m in genai.list_models()
             if task in m.supported_generation_methods
         ]
+
         return sorted([name.replace("models", "gemini") for name in models])
     except Exception as e:
         st.sidebar.error(f"Error fetching models: Invalid API Key or network issue.")
         return []
 
+@st.cache_data
+def get_available_modelsAudio(api_key):
+    """Fetches and caches the list of available Gemini models for a specific task."""
+    if not api_key:
+        return []
+    try:
+        genai.configure(api_key=api_key)
+        models = [
+            m.name for m in genai.list_models()
+            if  "tt"in str(m.name).lower()
+        ]
 
+        return sorted([name.replace("models/", "") for name in models])
+    except Exception as e:
+        st.sidebar.error(f"Error fetching models: Invalid API Key or network issue.")
+        return []
+@st.cache_data
+def get_available_modelsImage(api_key):
+    """Fetches and caches the list of available Gemini models for a specific task."""
+    if not api_key:
+        return []
+    try:
+        genai.configure(api_key=api_key)
+        models = [
+            m.name for m in genai.list_models()
+            if  "image"in str(m.name).lower()
+        ]
+
+        return sorted([name.replace("models/", "") for name in models])
+    except Exception as e:
+        st.sidebar.error(f"Error fetching models: Invalid API Key or network issue.")
+        return []
+@st.cache_data
+def get_available_modelsVeo(api_key):
+    """Fetches and caches the list of available Gemini models for a specific task."""
+    if not api_key:
+        return []
+    try:
+        genai.configure(api_key=api_key)
+        models = [
+            m.name for m in genai.list_models()
+            if  "veo"in str(m.name).lower()
+        ]
+
+        return sorted([name.replace("models/", "") for name in models])
+    except Exception as e:
+        st.sidebar.error(f"Error fetching models: Invalid API Key or network issue.")
+        return []
+@st.cache_data
+def get_available_modelstranscript(api_key):
+    """Fetches and caches the list of available Gemini models for a specific task."""
+    if not api_key:
+        return []
+    try:
+        genai.configure(api_key=api_key)
+        models = [
+            m.name for m in genai.list_models()
+            if  "2.5" in str(m.name).lower() or "flash"  in str(m.name).lower() or "3.0" in str(m.name).lower()
+        ]
+
+        return sorted([name.replace("models/", "") for name in models])
+    except Exception as e:
+        st.sidebar.error(f"Error fetching models: Invalid API Key or network issue.")
+        return []
 def markdown_to_docx(md_content):
     """Converts markdown content to a DOCX file in memory."""
     doc = Document()
@@ -139,7 +207,11 @@ def markdown_to_docx(md_content):
     doc.save(buffer)
     buffer.seek(0)
     return buffer.getvalue()
-
+# def pil_to_bytes(image: Image.Image):
+#     """Converts a PIL Image object to a byte stream for downloading."""
+#     byte_arr = io.BytesIO()
+#     image.save()
+#     return byte_arr.getvalue()
 
 def render_download_buttons(content, filename_base):
     """Renders a consistent set of download buttons for text-based content."""
@@ -266,8 +338,9 @@ def render_flyer_page():
         "From idea to share-ready asset in minutes. Your expert AI crew will design a concept, generate flyers, and write the social media copy.")
 
     available_text_models = get_available_models(st.session_state.get('gemini_key'), task="generateContent")
-    available_image_models ="imagen-3.0-generate-002"
-        #get_available_models(st.session_state.get('gemini_key'), task="generateImages")
+    available_image_models =get_available_modelsImage(st.session_state.get('gemini_key'))
+        #"imagen-3.0-generate-002"
+    #st.markdown(get_available_modelsImage(st.session_state.get('gemini_key')))
 
     st.header("Step 1: Describe Your Flyer")
     col1, col2 = st.columns(2)
@@ -323,10 +396,10 @@ def generate_images_with_langchain(api_key: str, prompt: str, model_name: str):
         #'imagen-4.0-generate-preview-06-06'
         response = client.models.generate_images(
             #imagen-3.0-generate-002
-            model='imagen-3.0-generate-002',
+            model=model_name,
             prompt=prompt,
             config=types.GenerateImagesConfig(
-                number_of_images=4,
+                number_of_images=1,
             )
         )
         st.success("Image generated successfully.")
@@ -343,6 +416,51 @@ def generate_images_with_langchain(api_key: str, prompt: str, model_name: str):
         st.error(f"An error occurred during image generation: {e}")
         return None
 
+
+# --- NEW: Image Generation Function ---
+def generate_images_from_prompt(api_key:str, prompt:str, num_images:int, aspect_ratio:str, person_gen:str,model_name:str):
+    """
+    Calls the Google GenAI API to generate images based on user inputs.
+    Returns a list of PIL Image objects.
+    """
+    try:
+        os.environ["GOOGLE_API_KEY"] = api_key
+        from google import genai as gen
+        from google.genai import types
+        from PIL import Image
+        client = gen.Client(api_key=os.environ["GOOGLE_API_KEY"])
+
+        # This client call is based on the new standalone Python SDK.
+        # Ensure the model name is current.
+        response = client.models.generate_images(
+            model=model_name,  # Using a current model name as of late 2024/early 2025
+            prompt=prompt,
+            # The config maps directly to the user's selections
+            config=types.GenerateImagesConfig(
+                number_of_images=num_images,
+                aspect_ratio=aspect_ratio,
+                personGeneration=person_gen
+
+            )
+        )
+        image_bytes_list = []
+        for i, generated_image in  enumerate(response.generated_images):
+            #img_byte_arr = BytesIO()
+            generated_image.image.save(f"image{i}.png")
+            #initial_image = img_byte_arr
+            #st.image(f"image{i}.png", caption=f"Generated Initial Image {i}")
+            image_bytes_list.append(f"image{i}.png")
+        # The new SDK returns a result object with a list of GeneratedImage objects
+        return image_bytes_list
+
+    except exceptions.InvalidArgument as e:
+        # Catches errors like a prompt being rejected by the safety filter.
+        st.error(
+            f"⚠️ Your request could not be processed. The prompt may have been rejected by the safety filter. Please try a different prompt. (Error: {e})")
+        return []
+    except Exception as e:
+        st.error(f"An unexpected error occurred: {e}")
+        return []
 
 def create_flyer_and_copy(api_key, topic, text_element, flyer_type, language, text_model_name, image_model_name):
     """Initializes and runs the flyer design crew."""
@@ -403,7 +521,18 @@ def create_flyer_and_copy(api_key, topic, text_element, flyer_type, language, te
             st.error(f"An error occurred during AI crew execution: {e}")
             return
 
-    if crew_result:
+    st.markdown("---")
+
+    st.subheader("🎨 Choose Your Image Prompt")
+
+    # Let user choose between the generated prompt or a custom one
+    prompt_choice = st.radio(
+        "Select the prompt source for flyer generation:",
+        ("Use the AI-Generated Prompt", "Enter my own custom prompt"),
+        key="prompt_choice"
+    )
+
+    if crew_result and prompt_choice == "Use the AI-Generated Prompt":
         with st.spinner("Sending prompt to Google Imagen for final rendering..."):
             image_bytes_list = generate_images_with_langchain(api_key=api_key, prompt=image_prompt,
                                                               model_name=image_model_name)
@@ -423,6 +552,31 @@ def create_flyer_and_copy(api_key, topic, text_element, flyer_type, language, te
             st.subheader(f"✍️ Your Social Media Caption in {language}")
             st.text_area("", social_copy, height=150)
             render_download_buttons(social_copy, "social_media_copy")
+    if prompt_choice == "Enter my own custom prompt" or not  crew_result:
+        final_prompt = st.text_area(
+            "Enter your custom prompt here:",
+            # Pre-fill with generated prompt as a starting point for editing
+            #value=st.session_state.get('custom_prompt', st.session_state['generated_prompt']),
+            height=150,
+            key='custom_prompt'  # Use a key to save the input
+        )
+        if final_prompt:
+            with st.spinner("Sending prompt to Google Imagen for final rendering..."):
+                image_bytes_list = generate_images_with_langchain(api_key=api_key, prompt=final_prompt,
+                                                                  model_name=image_model_name)
+
+            if image_bytes_list:
+                st.success("Rendering complete! Here are your flyer options:")
+                st.subheader("✅ Your Final Flyers")
+                st.session_state['generated_flyers'] = image_bytes_list
+
+                cols = st.columns(len(image_bytes_list))
+                for i, image_bytes in enumerate(image_bytes_list):
+                    with cols[i]:
+                        st.image(image_bytes, caption=f"Option {i + 1}")
+                        st.download_button(label=f"Download Option {i + 1}", data=image_bytes,
+                                           file_name=f"flyer_option_{i + 1}.png", mime="image/png")
+
 
 
 # --- PAGE 3: WORSHIP SONG STUDIO ---
@@ -493,9 +647,9 @@ async def generate_music_async(api_key, prompt, audio_chunks):
         async with client.aio.live.music.connect(model='models/lyria-realtime-exp') as session:
             async with asyncio.TaskGroup() as tg:
                 tg.create_task(receive_audio(session))
-                await session.set_weighted_prompts(prompts=[genai.types.WeightedPrompt(text=prompt, weight=1.0)])
+                await session.set_weighted_prompts(prompts=[gen.types.WeightedPrompt(text=prompt, weight=1.0)])
                 await session.set_music_generation_config(
-                    config=genai.types.LiveMusicGenerationConfig(bpm=120, temperature=1.0))
+                    config=gen.types.LiveMusicGenerationConfig(bpm=120, temperature=1.0))
                 await session.play()
                 await asyncio.sleep(30)  # Generate for 30 seconds
                 await session.stop()
@@ -581,7 +735,8 @@ def create_and_run_music_crew(api_key, genre, verses, topic, language, model_nam
             agent=songwriter, context=[lyrical_concept_task],
             expected_output="A complete song with clearly labeled sections.")
         prompt_generation_task = Task(
-            description=f"Combine the final lyrics (in {language}) and the Musical Arrangement Guide into one single, detailed prompt for Google's Lyria model.",
+            description=f"Combine the final lyrics (in {language}) and the Musical Arrangement Guide into one single,"
+                        f" detailed prompt for Google's Lyria model.",
             agent=prompt_technician, context=[song_writing_task, arrangement_task],
             expected_output="A single, comprehensive text prompt for Lyria.")
 
@@ -1008,6 +1163,7 @@ def render_viral_video_page():
 
     available_models = get_available_models(st.session_state.get('gemini_key'))
 
+
     st.header("Step 1: What's Your Message?")
     topic_or_verse = st.text_input("**Enter a Christian Topic or Bible Verse:**",
                                    placeholder="e.g., John 3:16, Saved by Grace")
@@ -1128,6 +1284,14 @@ def render_audio_suite_page():
               'Achernar', 'Alnilam', 'Schedar', 'Gacrux', 'Pulcherrima', 'Achird', 'Zubenelgenubi', 'Vindemiatrix',
               'Sadachbia', 'Sadaltager', 'Sulafat']
     selected_voice = st.selectbox("Choose a Voice:", VOICES)
+    available_audio_models = get_available_modelsAudio(st.session_state['gemini_key'])
+    if available_audio_models:
+        selected_model_audio = st.selectbox("Choose a Gemini Model for Video Concepting:", available_audio_models,
+                                            index=available_audio_models.index(
+                                                "gemini-1.5-pro-latest") if "gemini-1.5-pro-latest" in available_audio_models else 0)
+    else:
+        st.warning("Please enter a valid Gemini API Key in the sidebar to load available models.")
+        selected_model_audio = None
 
     if st.button("🎤 Generate Audio"):
         if not st.session_state.get('gemini_key'):
@@ -1135,28 +1299,30 @@ def render_audio_suite_page():
         elif not text_to_convert:
             st.error("🚨 Please enter some text to convert.")
         else:
-            generate_and_play_audio(st.session_state['gemini_key'], text_to_convert, selected_voice)
+
+            generate_and_play_audio(st.session_state['gemini_key'], text_to_convert, selected_voice,selected_model_audio)
 
     st.markdown("---")
 
     st.header("Audio-to-Text Transcription & Translation")
     st.markdown("Upload an audio file to transcribe it and translate it into another language.")
 
-    uploaded_audio = st.file_uploader("Upload an audio file:", type=["wav", "mp3", "m4a"])
+    #uploaded_audio = st.file_uploader("Upload an audio file:", type=["wav", "mp3", "m4a"])
     translation_language = st.selectbox("Translate transcript to:", LANGUAGES, key="translate_lang")
+    translate = st.text_area("Enter text to Translate:" )
+
 
     if st.button("✍️ Transcribe & Translate"):
         if not st.session_state.get('gemini_key'):
             st.error("🚨 Please enter your Gemini API key in the sidebar.")
-        elif uploaded_audio is None:
-            st.error("🚨 Please upload an audio file.")
         else:
-            models=["gemini-2.5-flash"]
+            models=get_available_models(st.session_state['gemini_key'])
             model_language = st.selectbox("Translate transcript to:", models, key="translate_model")
-            transcribe_and_translate_audio(st.session_state['gemini_key'], uploaded_audio, translation_language,model_language)
+            if  translate:
+              transcribe_and_translate_audio(st.session_state['gemini_key'], translate, translation_language,model_language)
 
 
-def generate_and_play_audio(api_key, text, voice_name):
+def generate_and_play_audio(api_key, text, voice_name,model_name):
     """Generates audio from text using the Gemini TTS model and displays it."""
     with st.spinner("Generating audio..."):
         try:
@@ -1167,7 +1333,7 @@ def generate_and_play_audio(api_key, text, voice_name):
             client = gen.Client(api_key=os.environ["GOOGLE_API_KEY"])
 
             response = client.models.generate_content(
-                model="gemini-2.5-flash-preview-tts",
+                model=model_name,
                 contents=f"Say this with a clear and engaging tone: {text}",
                 config=gen.types.GenerateContentConfig(
                     response_modalities=["AUDIO"],
@@ -1191,7 +1357,7 @@ def generate_and_play_audio(api_key, text, voice_name):
             st.error(f"An error occurred during audio generation: {e}")
 
 
-def transcribe_and_translate_audio(api_key, audio_file, language,model_name):
+def transcribe_and_translate_audio(api_key, text, language,model_name):
     """Transcribes and translates an audio file."""
     with st.spinner("Uploading and transcribing audio..."):
         try:
@@ -1201,24 +1367,20 @@ def transcribe_and_translate_audio(api_key, audio_file, language,model_name):
             client = gen.Client(api_key=os.environ["GOOGLE_API_KEY"])
 
 
-            # Upload the file to the Gemini API
-            uploaded_file = client.files.upload(
-                file=audio_file
-            )
+            # # Upload the file to the Gemini API
+            # uploaded_file = client.files.upload(
+            #     file=audio_file
+            # )
+            #
+            # # Transcribe
 
-            # Transcribe
-            response =client.models.generate_content(model=model_name,
-            contents= [
-                "Please transcribe this audio file.", uploaded_file])
-            transcript = response.text
-            st.subheader("Transcript:")
-            st.markdown(transcript)
+
 
             # Translate
             with st.spinner(f"Translating transcript to {language}..."):
                 translate_response = client.models.generate_content(model=model_name,
                 contents=[
-                    f"Translate the following text to {language}: {transcript}"
+                    f"Translate the following text to {language}: {text}"
                 ])
                 translated_text = translate_response.text
                 st.subheader(f"Translation ({language}):")
@@ -1243,6 +1405,7 @@ def single_render_viral_video_page():
         st.error("🚨 Please enter your Gemini API key in the sidebar.")
     # Initialize the client with the provided API key
     try:
+        st.markdown(get_available_modelsVeo(st.session_state.get('gemini_key')))
         from google import genai as gen
         from google.genai import types
         os.environ["GOOGLE_API_KEY"]=st.session_state.get('gemini_key')
@@ -1302,6 +1465,817 @@ def single_render_viral_video_page():
                 st.info("Please ensure you have access to the VEO model with your Gemini API key.")
         else:
             st.warning("Please enter a prompt to generate a video.")
+
+
+def read_uploaded_file(uploaded_file):
+    """Reads content from an uploaded file (txt, pdf, docx)."""
+    name = uploaded_file.name
+    if name.endswith('.txt'):
+        return uploaded_file.getvalue().decode("utf-8")
+    elif name.endswith('.pdf'):
+        pdf_reader = pypdf.PdfReader(uploaded_file)
+        return "\n".join(page.extract_text() for page in pdf_reader.pages)
+    elif name.endswith('.docx'):
+        doc = docx.Document(uploaded_file)
+        return "\n".join(para.text for para in doc.paragraphs)
+    return None
+
+
+def create_downloadable_docx(content):
+    """Converts markdown content to a downloadable DOCX file in memory."""
+    doc = docx.Document()
+    doc.add_paragraph(content)
+    bio = io.BytesIO()
+    doc.save(bio)
+    return bio.getvalue()
+
+
+def create_downloadable_html(content):
+    """Converts markdown content to a downloadable HTML file."""
+    html_content = markdown2.markdown(content)
+    return html_content.encode("utf-8")
+
+
+# ==============================================================================
+## 2. AI Crew Definitions
+# Contains the logic for both the school-level and university-level AI crews.
+# ==============================================================================
+
+def run_school_tutor_crew(api_key, country, grade, subject, language, question,model_name):
+    """Initializes and runs the AI Tutor Crew for Grades 1-12."""
+    os.environ["GOOGLE_API_KEY"] = api_key
+    llm = LLM(model=model_name, temperature=0.7, api_key=os.environ["GOOGLE_API_KEY"])
+
+    # Define Agents
+    curriculum_analyst = Agent(role='Curriculum Analyst',
+                               backstory="Expert in global K-12 education systems, ensuring explanations are pedagogically sound.",
+                               goal=f"Analyze the educational context for a {grade} student in {country} studying {subject}. Determine the appropriate depth and tone.",
+                               llm=llm)
+    subject_expert = Agent(role=f'{subject.title()} Subject Matter Expert',
+                           backstory=f"Renowned teacher in {subject} with a passion for clarity.",
+                           goal=f"Accurately solve the student's homework question about {subject}.", llm=llm)
+    pedagogy_expert = Agent(role='Pedagogy and Language Expert',
+                            backstory="Master educator skilled at adapting complex information for different age groups.",
+                            goal=f"Rewrite the expert's solution into an engaging answer in {language} for a {grade} student.",
+                            llm=llm)
+
+    # Define Tasks
+    task1 = Task(
+        description=f"Analyze context: Country {country}, Grade {grade}, Subject {subject}. Plan how to best explain the answer to: '{question}'",
+        expected_output="A brief plan on key concepts, depth, and tone.", agent=curriculum_analyst)
+    task2 = Task(description=f"Solve this homework question: '{question}'",
+                 expected_output="A correct, step-by-step solution.", agent=subject_expert, context=[task1])
+    task3 = Task(
+        description=f"Take the expert's solution and rewrite it in {language} as a friendly, clear markdown explanation for a student.",
+        expected_output="A complete, well-formatted markdown document in {language} with a friendly tone.",
+        agent=pedagogy_expert, context=[task2])
+
+    crew = Crew(agents=[curriculum_analyst, subject_expert, pedagogy_expert], tasks=[task1, task2, task3],
+                process=Process.sequential)
+    return crew.kickoff()
+
+
+def run_university_tutor_crew(api_key, course, language, question,model_name):
+    """Initializes and runs the University AI Professor Crew."""
+    os.environ["GOOGLE_API_KEY"] = api_key
+    llm =LLM(model=model_name, temperature=0.7, api_key=os.environ["GOOGLE_API_KEY"])
+
+    # Define Agents
+    curriculum_specialist = Agent(role='University Curriculum Specialist',
+                                  backstory="Academic advisor with encyclopedic knowledge of university course structures.",
+                                  goal=f"Analyze the curriculum for a university course titled '{course}'. Determine the expected academic rigor and prerequisite knowledge.",
+                                  llm=llm)
+    lead_professor = Agent(role=f'University Professor of {course}',
+                           backstory=f"Distinguished professor with a Ph.D. and extensive research experience relevant to {course}.",
+                           goal=f"Provide a rigorous, technically correct solution to the student's question.", llm=llm)
+    academic_tutor = Agent(role='Senior Academic Tutor',
+                           backstory="Award-winning teaching assistant skilled at making complex ideas click.",
+                           goal=f"Refine the professor's solution into a comprehensive explanation in {language}, connecting it to broader course concepts.",
+                           llm=llm)
+
+    # Define Tasks
+    task1 = Task(
+        description=f"Analyze the academic framework for the course '{course}' to answer the question: '{question}'.",
+        expected_output="An academic plan outlining the theoretical foundations and expected depth.",
+        agent=curriculum_specialist)
+    task2 = Task(description=f"Provide an expert, in-depth solution to the question: '{question}'.",
+                 expected_output="A detailed, technically accurate, step-by-step solution.", agent=lead_professor,
+                 context=[task1])
+    task3 = Task(
+        description=f"Synthesize the solution into a high-quality tutorial explanation in {language}, formatted in professional markdown.",
+        expected_output=f"A complete tutorial in {language} linking the solution to core concepts of '{course}'.",
+        agent=academic_tutor, context=[task2])
+
+    crew = Crew(agents=[curriculum_specialist, lead_professor, academic_tutor], tasks=[task1, task2, task3],
+                process=Process.sequential)
+    return crew.kickoff()
+
+
+# ==============================================================================
+## 3. Page Rendering Functions
+# Each function defines the UI and logic for a specific page.
+# ==============================================================================
+
+def render_tutor_page():
+    """Renders the AI Tutor Studio page for Grades 1-12."""
+    st.title("🎓 AI Tutor Studio (Grades 1-12)")
+    st.markdown("Your personal AI learning assistant. Get step-by-step help with your homework.")
+
+    with st.form("school_tutor_form"):
+        st.subheader("Tell us about your homework")
+        col1, col2 = st.columns(2)
+        country = col1.text_input("Country", "Germany")
+        subject = col1.selectbox("Subject", ["Mathematics", "History", "Science", "Literature", "Physics"])
+        grade = col2.selectbox("Grade / Class", [f"Grade {i}" for i in range(1, 14)])
+        language = col2.selectbox("Language for Explanation", LANGUAGES)
+        question = st.text_area("📝 Enter your question here", height=150)
+        uploaded_file = st.file_uploader("Or upload a file (TXT, PDF, DOCX)", type=["txt", "pdf", "docx"],
+                                         key="school_uploader")
+        submitted = st.form_submit_button("Get Help from AI Tutors!", use_container_width=True)
+    available_models = get_available_models(st.session_state.get('gemini_key'), task="generateContent")
+
+    if available_models:
+        default_model = "gemini-1.5-pro-latest"
+        selected_model = st.selectbox("Choose a Gemini Model:", available_models, index=available_models.index(
+            default_model) if default_model in available_models else 0)
+    else:
+        st.warning("Please enter a valid Gemini API Key in the sidebar to load available models.")
+        selected_model = None
+
+
+
+    if submitted:
+        if not question and not uploaded_file:
+            st.error("Please enter a question or upload a file.")
+        else:
+            content = question + (
+                f"\n\n--- FROM FILE ---\n{read_uploaded_file(uploaded_file)}" if uploaded_file else "")
+            with st.spinner("🚀 Your AI Tutors are working on it..."):
+                st.session_state.school_result = run_school_tutor_crew(st.session_state.get('gemini_key'), country, grade, subject, language,
+                                                                       content,selected_model)
+
+    if "school_result" in st.session_state and st.session_state.school_result:
+        st.markdown("---")
+        st.subheader("✨ Here's your explanation:")
+        st.markdown(st.session_state.school_result)
+        # Add download buttons if needed, similar to the university page
+
+
+def render_university_tutor_page():
+    """Renders the University AI Professor page."""
+    st.title("🧑‍🏫 University AI Professor")
+    st.markdown("Get expert-level academic help for your university courses.")
+
+    with st.form("uni_tutor_form"):
+        st.subheader("Provide your course and question details")
+        course = st.text_input("University Course Name", placeholder="e.g., Experimental Physics, Linear Algebra II")
+        language = st.selectbox("Language for Explanation",LANGUAGES)
+        question = st.text_area("📝 Enter your question or problem here", height=150)
+        uploaded_file = st.file_uploader("Or upload a problem set or paper (TXT, PDF, DOCX)",
+                                         type=["txt", "pdf", "docx"], key="uni_uploader")
+        submitted = st.form_submit_button("Consult the Professor", use_container_width=True)
+        available_models = get_available_models(st.session_state.get('gemini_key'), task="generateContent")
+
+        if available_models:
+            default_model = "gemini-1.5-pro-latest"
+            selected_model = st.selectbox("Choose a Gemini Model:", available_models, index=available_models.index(
+                default_model) if default_model in available_models else 0)
+        else:
+            st.warning("Please enter a valid Gemini API Key in the sidebar to load available models.")
+            selected_model = None
+
+    if submitted:
+        if not course:
+            st.error("Please enter your university course name.")
+        elif not question and not uploaded_file:
+            st.error("Please enter a question or upload a file.")
+        else:
+            content = question + (
+                f"\n\n--- FROM FILE ---\n{read_uploaded_file(uploaded_file)}" if uploaded_file else "")
+            with st.spinner("🚀 Consulting with the AI academic team..."):
+                st.session_state.uni_result = run_university_tutor_crew(st.session_state.get('gemini_key'), course, language, content,selected_model)
+
+    if "uni_result" in st.session_state and st.session_state.uni_result:
+        st.markdown("---")
+        st.subheader("✨ Professor's Explanation:")
+        st.markdown(st.session_state.uni_result)
+        # Add download buttons
+
+
+
+# --- NEW: Chef Crew Definition ---
+def run_chef_crew(api_key, country, food_type,model_name):
+    """Initializes and runs the AI Chef Crew."""
+    os.environ["GOOGLE_API_KEY"] = api_key
+    llm = LLM(model=model_name, temperature=0.7, api_key=os.environ["GOOGLE_API_KEY"])
+
+    # Define the Culinary Agents
+    cuisine_specialist = Agent(
+        role='World Cuisine & Dietary Specialist',
+        goal=f"Generate 3 diverse and exciting meal ideas (Appetizer, Main Course, Dessert) that fit the {food_type} category and are inspired by the cuisine of {country}.",
+        backstory="An acclaimed food historian and globetrotter who understands the soul of a country's food and the principles of dietary choices like veganism. Your suggestions are authentic and inspiring.",
+        llm=llm,
+        verbose=True
+    )
+
+    master_chef = Agent(
+        role='Executive Chef & Recipe Developer',
+        goal="Write clear, concise, and easy-to-follow recipes for the meal ideas provided. Each recipe must include an ingredient list (with metric and imperial measurements), step-by-step instructions, and estimated prep/cook times.",
+        backstory="A Michelin-trained chef with a passion for teaching home cooks. You can deconstruct any dish into simple, foolproof steps. Your recipes are reliable and always delicious.",
+        llm=llm,
+        verbose=True
+    )
+
+    food_stylist = Agent(
+        role='Food Blogger & Creative Director',
+        goal="Format the recipes into a beautiful markdown file. For each of the 3 complete meals, write a tantalizing description and a detailed, effective image generation prompt for Gemini to visualize the final dishes.",
+        backstory="A top-tier food blogger and photographer who knows how to make food look irresistible. You are an expert in crafting prompts for AI image generators to create stunning, photorealistic food photography.",
+        llm=llm,
+        verbose=True
+    )
+
+    # Define the Culinary Tasks
+    task_brainstorm = Task(
+        description=f"Brainstorm 3 complete meal ideas (appetizer, main, dessert) based on {country}'s cuisine for a {food_type} diet.",
+        expected_output="A list of 3 distinct meal plans, each containing a name for an appetizer, a main course, and a dessert.",
+        agent=cuisine_specialist
+    )
+
+    task_develop_recipes = Task(
+        description="For each of the 3 meal plans, write a full, detailed recipe for the appetizer, main course, and dessert.",
+        expected_output="A complete set of recipes. Each recipe must have a title, ingredient list, and step-by-step instructions.",
+        agent=master_chef,
+        context=[task_brainstorm]
+    )
+
+    task_format_and_present = Task(
+        description="Combine all the recipes into a single, beautifully formatted markdown document. For each of the 3 meals, add a mouth-watering description and a specific, copy-paste ready prompt for an AI image generator (like Gemini) to create a picture of the main course.",
+        expected_output="A final, user-ready markdown document containing descriptions, recipes for 3 full meals, and 3 distinct, detailed image generation prompts.",
+        agent=food_stylist,
+        context=[task_develop_recipes]
+    )
+
+    chef_crew = Crew(
+        agents=[cuisine_specialist, master_chef, food_stylist],
+        tasks=[task_brainstorm, task_develop_recipes, task_format_and_present],
+        process=Process.sequential
+    )
+
+    return chef_crew.kickoff()
+
+
+def render_chef_page():
+    """Renders the AI Chef Studio page."""
+    st.title("🍳 AI Chef Studio")
+    st.markdown("Your personal guide to culinary discovery. Get complete meal plans and recipes from around the world.")
+
+    with st.form("chef_form"):
+        st.subheader("What are you in the mood for?")
+        col1, col2 = st.columns(2)
+        country = col1.text_input("Enter a Country or Region", placeholder="e.g., Italy, Thailand, Mexico")
+        food_type = col2.selectbox("Select a Food Type", ["Any", "Meat", "Vegetarian", "Vegan"])
+        available_models = get_available_models(st.session_state.get('gemini_key'), task="generateContent")
+
+        if available_models:
+            default_model = "gemini-1.5-pro-latest"
+            selected_model = st.selectbox("Choose a Gemini Model:", available_models, index=available_models.index(
+                default_model) if default_model in available_models else 0)
+        else:
+            st.warning("Please enter a valid Gemini API Key in the sidebar to load available models.")
+            selected_model = None
+
+        submitted = st.form_submit_button("Generate Meal Ideas", use_container_width=True)
+
+
+    if submitted:
+        if not country:
+            st.error("Please enter a country or region.")
+        else:
+            with st.spinner("👩‍🍳 The AI Chef Crew is crafting your menu... This might take a minute!"):
+                try:
+                    # Using session_state to store the result
+                    st.session_state.chef_result = run_chef_crew(st.session_state.get('gemini_key'), country, food_type, selected_model)
+                except Exception as e:
+                    st.error(f"An error occurred while communicating with the crew: {e}")
+                    st.session_state.chef_result = ""
+
+    if "chef_result" in st.session_state and st.session_state.chef_result:
+        st.markdown("---")
+        st.subheader("Your Custom Meal & Recipe Plan")
+        st.markdown(st.session_state.chef_result)
+
+        # # Add download buttons
+        # st.markdown("---")
+        # st.subheader("⬇️ Download Your Full Recipe Plan")
+        # col1, col2, col3 = st.columns(3)
+        # recipe_text = st.session_state.chef_result
+        # file_name_base = f"{country}_{food_type}_recipes"
+        #
+        # col1.download_button(
+        #     "As Markdown (.md)", recipe_text.encode('utf-8'), f"{file_name_base}.md", "text/markdown"
+        # )
+        # col2.download_button(
+        #     "As Text File (.txt)", recipe_text.encode('utf-8'), f"{file_name_base}.txt", "text/plain"
+        # )
+        # col3.download_button(
+        #     "As Word Doc (.docx)", create_downloadable_docx(recipe_text), f"{file_name_base}.docx",
+        #     "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        # )
+
+
+# --- NEW: Image Studio Page ---
+def render_image_studio_page():
+    """Renders the AI Image Studio page."""
+    st.title("🎨 AI Image Studio")
+    st.markdown("Bring your ideas to life. Generate stunning visuals with a simple text prompt.")
+    available_image_models = get_available_modelsImage(st.session_state.get('gemini_key'))
+    if available_image_models:
+        default_model = "gemini-1.5-pro-latest"
+        selected_model = st.selectbox("Choose a Gemini Model:", available_image_models, index=available_image_models.index(
+            default_model) if default_model in available_image_models else 0)
+    else:
+        st.warning("Please enter a valid Gemini API Key in the sidebar to load available models.")
+        selected_model = None
+
+
+
+
+    with st.form("image_form"):
+        st.subheader("Craft Your Vision")
+        prompt = st.text_area("Enter your image prompt", height=100,
+                              placeholder="e.g., A majestic lion wearing a crown, sitting on a throne in a futuristic jungle.")
+
+        st.subheader("Configure Your Image")
+        col1, col2, col3 = st.columns(3)
+
+        num_images = col1.slider("Number of Images", 1, 4, 1)
+        aspect_ratio = col2.selectbox("Aspect Ratio", ["1:1", "3:4", "4:3", "9:16", "16:9"], index=0)
+        person_gen_options = {
+            "Allow Adults (Default)": "allow_adult",
+            "Allow Adults & Children": "allow_all",
+            "Don't Allow People": "dont_allow"
+        }
+        person_gen_display = col3.selectbox("People in Image", options=list(person_gen_options.keys()))
+        person_gen_value = person_gen_options[person_gen_display]
+
+        submitted = st.form_submit_button("Generate Images", use_container_width=True)
+
+
+
+    if submitted:
+        if not prompt:
+            st.error("Please enter a prompt to generate an image.")
+        else:
+            with st.spinner("🎨 The AI is painting your masterpiece..."):
+                # Call the backend function to get the images
+                generated_images = generate_images_from_prompt(st.session_state.get('gemini_key'), prompt, num_images, aspect_ratio,
+                                                               person_gen_value,  selected_model)
+
+                if generated_images:
+                    st.session_state.generated_images = generated_images
+                else:
+                    st.session_state.generated_images = []
+
+    if "generated_images" in st.session_state and st.session_state.generated_images:
+        st.markdown("---")
+        st.subheader("Your Generated Images")
+
+        # Create a dynamic number of columns for the image gallery
+        cols = st.columns(len(st.session_state.generated_images))
+        for i, img in enumerate(st.session_state.generated_images):
+            with cols[i]:
+                # The 'img' object from the SDK is a PIL.Image object
+                st.image(img, caption=f"Image {i + 1}", use_column_width=True)
+
+                # Provide a download button for each image
+                st.download_button(
+                    label="Download",
+                    data=img,
+                    file_name=f"generated_image_{i + 1}.png",
+                    mime="image/png"
+                )
+# --- NEW: Bible Study Crew ---
+def run_bible_study_crew(api_key, serper_api_key, topic, testament, language,model_name):
+    """
+    Runs a Crew AI team to find scriptures and write a devotional.
+    """
+    os.environ["GOOGLE_API_KEY"] = api_key
+    os.environ["SERPER_API_KEY"] = serper_api_key
+    llm = LLM(model=model_name, temperature=0.7, api_key=os.environ["GOOGLE_API_KEY"])
+    search_tool = SerperDevTool(api_key=os.environ["SERPER_API_KEY"])
+
+    # Define the Bible Study Agents
+    scholar = Agent(
+        role='Bible Scholar and Researcher',
+        goal=f"Conduct a comprehensive search of the Bible to find at least 20 relevant verses for the topic: '{topic}'. The search must be limited to the {testament} Testament(s).",
+        backstory="You are a meticulous and knowledgeable Bible scholar with a deep understanding of biblical languages and contexts. You use digital tools like Bible Gateway to perform precise and exhaustive scripture searches.",
+        tools=[search_tool],
+        llm=llm,
+        verbose=True
+    )
+
+    pastor = Agent(
+        role='Pentecostal Pastor and Theologian',
+        goal=f"Write a short, inspiring devotional or sermon outline based on the Bible verses provided. The message should be written in {language} and reflect a Pentecostal passion for Jesus and love for people.",
+        backstory="You are a seasoned pastor with a gift for teaching. You can take a list of scriptures and weave them into a powerful, practical, and encouraging message that speaks to the heart.",
+        llm=llm,
+        verbose=True
+    )
+
+    # Define the Study Tasks
+    task_find_verses = Task(
+        description=f"Search for scriptures related to '{topic}' within the {testament} Testament(s). Use search queries like 'bible verses about {topic} in the {testament} testament on Bible Gateway'. Compile a list of the top 10-15 most relevant verses.",
+        expected_output=f"A markdown-formatted list of 10-15 bible verses, each with its reference (e.g., John 3:16). The entire list should be in {language}.",
+        agent=scholar
+    )
+
+    task_write_sermon = Task(
+        description="Using the list of scriptures from the scholar, write an inspiring devotional. Start with a compelling introduction, explain the key themes found in the verses, and conclude with a practical application or encouragement for the reader.",
+        expected_output=f"A complete devotional message in {language}, approximately 300-500 words long, formatted in markdown with a title, introduction, body, and conclusion.",
+        agent=pastor,
+        context=[task_find_verses]
+    )
+
+    bible_crew = Crew(
+        agents=[scholar, pastor],
+        tasks=[task_find_verses, task_write_sermon],
+        process=Process.sequential
+    )
+    return bible_crew.kickoff()
+
+
+# --- NEW: Bible Study Page ---
+def render_bible_search():
+    """Renders the AI Bible Study Assistant page."""
+    st.title("🙏 AI Bible Study Assistant")
+    available_models = get_available_models(st.session_state.get('gemini_key'), task="generateContent")
+    st.markdown(
+        "Your personal theology research partner. Enter a topic to discover relevant scriptures and receive a custom devotional.")
+    if available_models:
+        default_model = "gemini-1.5-pro-latest"
+        selected_model = st.selectbox("Choose a Gemini Model:", available_models, index=available_models.index(
+            default_model) if default_model in available_models else 0)
+    else:
+        st.warning("Please enter a valid Gemini API Key in the sidebar to load available models.")
+        selected_model = None
+
+    with st.form("bible_study_form"):
+        st.subheader("Start Your Study")
+        topic = st.text_input("Enter a Topic, Theme, or Question",
+                              placeholder="e.g., Faith, Forgiveness, Who is the Holy Spirit?")
+
+        col1, col2 = st.columns(2)
+        language = col1.text_input("Language for Results",  placeholder="e.g German, French, Swahili etc." )
+        testament = col2.selectbox("Select Testament(s)", ["All", "Old Testament", "New Testament"])
+
+        submitted = st.form_submit_button("Begin Bible Study", use_container_width=True)
+
+    if submitted:
+        if not topic or not language:
+            st.error("Please provide a Topic and a Language.")
+        else:
+            with st.spinner("The AI ministry team is studying God's Word for you..."):
+                try:
+                    # Using session_state to store the result
+                    st.session_state.study_result = run_bible_study_crew(st.session_state.get('gemini_key'),
+                                                                         st.session_state['serper_key'] ,
+                                                                         topic, testament,
+                                                                         language,selected_model)
+                except Exception as e:
+                    st.error(f"An error occurred: {e}")
+                    st.session_state.study_result = ""
+
+    if "study_result" in st.session_state and st.session_state.study_result:
+        st.markdown("---")
+        st.subheader(f"Study Results on '{topic}'")
+        st.markdown(st.session_state.study_result)
+
+        st.markdown("---")
+        # st.subheader("⬇️ Download Your Study")
+        # col1, col2 = st.columns(2)
+        #
+        # col1.download_button(
+        #     "As Markdown (.md)", st.session_state.study_result,
+        #     f"bible_study_{topic.replace(' ', '_')}.md"
+        # )
+        # col2.download_button(
+        #     "As Word Doc (.docx)", create_downloadable_docx(st.session_state.study_result),
+        #     f"bible_study_{topic.replace(' ', '_')}.docx"
+        # )
+# --- NEW: Language Learning Crew ---
+def run_language_crew(api_key, native_language, target_language, level,model_name):
+    """
+    Runs a Crew AI team to generate a language learning study guide.
+    """
+    os.environ["GOOGLE_API_KEY"] = api_key
+    llm = LLM(model=model_name, temperature=0.7, api_key=os.environ["GOOGLE_API_KEY"])
+    # Define the Language Learning Agents
+    curriculum_designer = Agent(
+        role='Polyglot Curriculum Designer',
+        goal=f"Outline a 10-lesson study plan for a {native_language} speaker learning {target_language} at the {level} level. The plan should cover key grammar, vocabulary themes, and conversational skills appropriate for this level.",
+        backstory="You are an expert linguist and curriculum designer for a world-renowned language school. You create structured, effective learning paths that guide students from one proficiency level to the next.",
+        llm=llm,
+        verbose=True
+    )
+
+    grammar_specialist = Agent(
+        role='Grammar & Vocabulary Specialist',
+        goal=f"Create the detailed content for each of the 10 lessons. For each lesson, provide a clear grammar explanation, a list of essential vocabulary with translations to {native_language}, and example sentences.",
+        backstory=f"You are a language professor specializing in {target_language}. You have a gift for explaining complex grammar rules simply and providing vocabulary that is immediately useful for learners.",
+        llm=llm,
+        verbose=True
+    )
+
+    language_coach = Agent(
+        role='Language Coach & Pronunciation Guide',
+        goal=f"Enhance the 10-lesson guide with practical learning tips, pronunciation guides for difficult sounds, and a 'Takeaway Summary' for each lesson. The tone should be encouraging and motivating.",
+        backstory="You are a popular language coach who helps thousands of students achieve fluency. You know the common pitfalls and provide practical, confidence-boosting advice to make learning stick.",
+        llm=llm,
+        verbose=True
+    )
+
+    # Define the Learning Plan Tasks
+    task_design_plan = Task(
+        description=f"Create a 10-lesson curriculum outline for a {native_language} speaker learning {target_language} at level {level}. Define a specific topic for each lesson (e.g., 'Lesson 1: Greetings & Basic Introductions').",
+        expected_output="A numbered list of 10 lesson titles, each with a brief description of the grammar point and vocabulary theme to be covered.",
+        agent=curriculum_designer
+    )
+
+    task_create_content = Task(
+        description="Based on the 10-lesson curriculum, write the detailed content for each lesson. Each lesson must include a grammar explanation with examples and a vocabulary list with translations.",
+        expected_output=f"A complete, 10-lesson document. Each lesson should be clearly marked and contain a 'Grammar Focus' section and a 'Vocabulary' table (word in {target_language}, translation in {native_language}).",
+        agent=grammar_specialist,
+        context=[task_design_plan]
+    )
+
+    task_add_coaching = Task(
+        description="Review the 10-lesson document and enrich each lesson. Add a 'Pronunciation Pointer' section for tricky sounds, a 'Learning Tip' with practical advice, and a concise 'Takeaway Summary' at the end of each lesson.",
+        expected_output="The final, comprehensive 10-lesson study guide formatted in clear markdown. Each lesson must be fully self-contained with all five sections: Grammar, Vocabulary, Pronunciation, Tips, and Summary.",
+        agent=language_coach,
+        context=[task_create_content]
+    )
+
+    language_crew = Crew(
+        agents=[curriculum_designer, grammar_specialist, language_coach],
+        tasks=[task_design_plan, task_create_content, task_add_coaching],
+        process=Process.sequential
+    )
+    return language_crew.kickoff()
+
+
+# --- NEW: Language Academy Page ---
+def render_language_academy_page():
+    """Renders the AI Language Academy page."""
+    st.title("🌍 AI Language Academy")
+    available_models = get_available_models(st.session_state.get('gemini_key'), task="generateContent")
+    if available_models:
+        default_model = "gemini-1.5-pro-latest"
+        selected_model = st.selectbox("Choose a Gemini Model:", available_models, index=available_models.index(
+            default_model) if default_model in available_models else 0)
+    else:
+        st.warning("Please enter a valid Gemini API Key in the sidebar to load available models.")
+        selected_model = None
+    st.markdown(
+        "Your personal AI tutor for mastering a new language. Get a complete, 10-lesson study guide tailored to your needs.")
+    with st.form("language_form"):
+        st.subheader("Set Up Your Learning Path")
+
+        col1, col2, col3 = st.columns(3)
+        native_language = col1.text_input("Your Language", placeholder="e.g., German")
+        target_language = col2.text_input("Language to Learn", placeholder="e.g., French")
+        level = col3.selectbox("Select Your Level (CEFR)", ["A1", "A2", "B1", "B2", "C1", "C2"])
+        submitted = st.form_submit_button("Generate My Study Guide", use_container_width=True)
+
+    if submitted:
+        if not native_language or not target_language:
+            st.error("Please specify both your native language and the language you want to learn.")
+        else:
+            with st.spinner(
+                    f"The AI teaching crew is building your {level} {target_language} curriculum... This may take a few minutes."):
+                try:
+                    st.session_state.language_result = run_language_crew(st.session_state.get('gemini_key'), native_language, target_language,
+                                                                         level,selected_model)
+                except Exception as e:
+                    st.error(f"An error occurred: {e}")
+                    st.session_state.language_result = ""
+
+    if "language_result" in st.session_state and st.session_state.language_result:
+        st.markdown("---")
+        st.subheader(f"Your {target_language} ({level}) Study Guide")
+        st.markdown(st.session_state.language_result)
+
+
+# --- NEW: Podcast Crew & TTS Functions ---
+
+def run_podcast_crew(api_key, country, language, topic, model_name):
+    """
+    Runs a Crew AI team to generate a podcast script prompt.
+    """
+    os.environ["GOOGLE_API_KEY"] = api_key
+    llm = LLM(model=model_name, temperature=0.7, api_key=os.environ["GOOGLE_API_KEY"])
+
+    # Define the Podcast Production Crew
+    researcher = Agent(
+        role='Cultural Researcher & Pentecostal Theologian',
+        goal=f"Research the topic '{topic}' from a Pentecostal Christian perspective, tailoring the key points and analogies to be highly relevant and impactful for an audience in {country}.",
+        backstory="You are a passionate pastor and scholar with a deep love for Jesus and people. You understand how to connect timeless biblical truths to specific cultural contexts, making the message feel personal and alive.",
+        llm=llm,
+        verbose=True
+    )
+
+    scriptwriter = Agent(
+        role='Engaging Podcast Scriptwriter',
+        goal=f"Write a conversational, two-speaker podcast script based on the researcher's key points. The script should be for a 10-minute episode, written in {language}, and feature a Host and a Guest.",
+        backstory="You are a gifted storyteller who writes for a popular Christian podcast with billions of followers. You excel at creating dialogue that is natural, engaging, and spiritually uplifting.",
+        llm=llm,
+        verbose=True
+    )
+
+    producer = Agent(
+        role='Podcast Show Producer',
+        goal="Format the final script into a perfect, copy-paste ready prompt for a multi-speaker Text-to-Speech model. The prompt must start with 'TTS the following conversation between Host and Guest:' followed by the dialogue.",
+        backstory="You are a meticulous producer who knows exactly how to format scripts for AI voice generation. Your work ensures a flawless transition from text to high-quality audio.",
+        llm=llm,
+        verbose=True
+    )
+
+    # Define the Production Tasks
+    task_research = Task(
+        description=f"Develop 3-4 key talking points for a podcast on '{topic}', ensuring they are spiritually deep and culturally relevant for people in {country}.",
+        expected_output=f"A bulleted list of key themes, supporting scriptures, and culturally specific analogies, all in {language}.",
+        agent=researcher
+    )
+    task_script = Task(
+        description="Using the key points, write a full podcast script for two speakers (Host, Guest). The tone should be warm, encouraging, and conversational.",
+        expected_output="A complete podcast script in {language}, with clear labels for 'Host:' and 'Guest:' for each line of dialogue.",
+        agent=scriptwriter,
+        context=[task_research]
+    )
+    task_format = Task(
+        description="Take the final script and format it into a single block of text ready for the TTS model. Ensure it starts with the required header.",
+        expected_output="A single text block starting with 'TTS the following conversation between Host and Guest:' followed by the entire script.",
+        agent=producer,
+        context=[task_script]
+    )
+
+    podcast_crew = Crew(
+        agents=[researcher, scriptwriter, producer],
+        tasks=[task_research, task_script, task_format],
+        process=Process.sequential
+    )
+    return podcast_crew.kickoff()
+
+
+def generate_podcast_audio(api_key, prompt, model_name):
+    """
+    Calls the Google GenAI API to generate multi-speaker audio.
+    Returns the raw PCM audio data.
+    """
+    try:
+        from google import genai as gen
+        from google.genai import types
+        os.environ["GOOGLE_API_KEY"]=api_key
+        #client = gen.Client(api_key=os.environ["GOOGLE_API_KEY"])
+        client = gen.Client(api_key=os.environ["GOOGLE_API_KEY"])
+
+        # Define two distinct voices for the podcast
+        speaker_configs = [
+            types.SpeakerVoiceConfig(
+                speaker='Host',
+                voice_config=types.VoiceConfig(prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name='Kore'))
+                # A firm, clear voice for the host
+            ),
+            types.SpeakerVoiceConfig(
+                speaker='Guest',
+                voice_config=types.VoiceConfig(prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name='Sadachbia'))
+                # A lively, knowledgeable voice for the guest
+            ),
+        ]
+
+        response = client.models.generate_content(
+            model=model_name,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_modalities=["AUDIO"],
+                speech_config=types.SpeechConfig(
+                    multi_speaker_voice_config=types.MultiSpeakerVoiceConfig(
+                        speaker_voice_configs=[
+                            types.SpeakerVoiceConfig(
+                                speaker='Host',
+                                voice_config=types.VoiceConfig(
+                                    prebuilt_voice_config=types.PrebuiltVoiceConfig(
+                                        voice_name='Kore',
+                                    )
+                                )
+                            ),
+                            types.SpeakerVoiceConfig(
+                                speaker='Guest',
+                                voice_config=types.VoiceConfig(
+                                    prebuilt_voice_config=types.PrebuiltVoiceConfig(
+                                        voice_name='Puck',
+                                    )
+                                )
+                            ),
+                        ]
+                    )
+                )
+            )
+        )
+        # Extract the audio data
+        return response.candidates[0].content.parts[0].inline_data.data
+    except Exception as e:
+        st.error(f"An error occurred during audio generation: {e}")
+        return None
+
+
+# --- NEW: Podcast Studio Page ---
+def render_podcast_studio_page():
+    """Renders the AI Podcast Studio page."""
+    st.title("🎙️ AI Podcast Studio")
+    st.markdown("Create and download a 10-minute, two-speaker podcast on any topic, tailored to your audience.")
+    available_models = get_available_models(st.session_state.get('gemini_key'), task="generateContent")
+    if available_models:
+        default_model = "gemini-1.5-pro-latest"
+        selected_model = st.selectbox("Choose a Gemini Model:", available_models, index=available_models.index(
+            default_model) if default_model in available_models else 0)
+    else:
+        st.warning("Please enter a valid Gemini API Key in the sidebar to load available models.")
+        selected_model = None
+
+    st.subheader("1. Define Your Podcast Episode")
+    col1, col2, col3 = st.columns(3)
+    country = col1.text_input("Target Country", placeholder="e.g., Nigeria, Brazil, USA")
+    language = col2.text_input("Language", placeholder="e.g., English, Yoruba, Portuguese")
+    topic = col3.text_input("Episode Topic", placeholder="e.g., The Power of Forgiveness")
+
+    st.subheader("2. Choose Your Script Source")
+    prompt_source = st.radio(
+        "How do you want to create the podcast script?",
+        ["Let the AI Crew write the script for me", "I will provide my own custom script"],
+        key="prompt_choice"
+    )
+
+    # Initialize session state for the prompt
+    if 'podcast_prompt' not in st.session_state:
+        st.session_state.podcast_prompt = ""
+
+    if prompt_source == "Let the AI Crew write the script for me":
+        if st.button("Generate Script with AI Crew", use_container_width=True):
+            if not all([country, language, topic]):
+                st.error("Please fill in Country, Language, and Topic to generate a script.")
+            else:
+                with st.spinner("The AI Production Crew is writing your podcast..."):
+                    st.session_state.podcast_prompt = run_podcast_crew(st.session_state.get('gemini_key'), country, language, topic, selected_model)
+    else:
+        st.session_state.podcast_prompt = st.text_area(
+            "Enter your custom script here",
+            height=250,
+            placeholder="Start with 'TTS the following conversation between Speaker1 and Speaker2:' followed by the dialogue.",
+            value=st.session_state.podcast_prompt
+        )
+
+    if st.session_state.podcast_prompt:
+        st.markdown("---")
+        st.subheader("Generated Script Prompt:")
+        st.text_area("Script ready for audio generation:", value=st.session_state.podcast_prompt, height=200,
+                     disabled=True)
+
+        st.markdown("---")
+        st.subheader("3. Generate and Download Your Podcast")
+        available_models_audio = get_available_modelsAudio(st.session_state.get('gemini_key'))
+        if available_models_audio:
+            default_model = "gemini-1.5-pro-latest"
+            selected_model_audio = st.selectbox("Choose a Gemini Model:", available_models_audio, index=available_models_audio.index(
+                default_model) if default_model in available_models_audio else 0)
+        else:
+            st.warning("Please enter a valid Gemini API Key in the sidebar to load available models.")
+            selected_model_audio = None
+        if st.button("Create Podcast Audio File (.wav)", use_container_width=True):
+            with st.spinner("🎙️ The AI is recording your podcast... This may take a few moments."):
+                audio_data = generate_podcast_audio(st.session_state.get('gemini_key'), st.session_state.podcast_prompt,selected_model_audio)
+                if audio_data:
+                    st.success("Podcast audio generated successfully!")
+
+                    # Create a WAV file in memory
+                    wav_io = io.BytesIO()
+                    with wave.open(wav_io, "wb") as wf:
+                        wf.setnchannels(1)  # Mono
+                        wf.setsampwidth(2)  # 16-bit
+                        wf.setframerate(24000)  # 24kHz sample rate
+                        wf.writeframes(audio_data)
+                    wav_io.seek(0)
+
+                    st.audio(wav_io, format='audio/wav')
+
+                    st.download_button(
+                        label="Download Podcast (.wav)",
+                        data=wav_io,
+                        file_name=f"{topic.replace(' ', '_')}_podcast.wav",
+                        mime="audio/wav",
+                        use_container_width=True
+                    )
+
+
 # --- MAIN APP ROUTER ---
 
 def main():
@@ -1310,13 +2284,20 @@ def main():
         "Home": "🏠",
         "Sermon Generator": "📖",
         "Flyer Production Studio": "🚀",
+        "AI Image Studio": "🎨",
         "Worship Song Studio": "🎶",
         "Book Writing Studio": "📚",
         "Bible Study Generator": "🌍",
+        "AI Bible Search": "🙏",
         "Newsroom HQ": "�",
         "Viral Video Studio": "📝",
         "Single Video Studio": "🎬",
-        "Audio Suite": "🎧"
+        "Audio Suite": "🎧",
+        "AI Tutor (Grades 1-12)": "🎓",
+        "University AI Professor": "🧑‍🏫",
+        "AI Chef Studio": "🍳",
+        "AI Language Academy": "🌍",
+        "AI Podcast Studio": "🎙️",
     }
     selection = st.sidebar.radio("Go to", list(page_options.keys()))
 
@@ -1329,12 +2310,19 @@ def main():
 
         - **📖 Sermon Generator:** A collaborative team of AI agents to help you craft deep, biblically-sound, and engaging sermons.
         - **🚀 Flyer Production Studio:** An AI design agency that produces a stunning flyer image and compelling social media copy.
+         - **🎨 AI Image Studio:** Bring your ideas to life! Generate stunning, high-quality visuals from a simple text prompt with advanced configuration options.
         - **🎶 Worship Song Studio:** An AI music collective that writes lyrics and creates a production-ready prompt for generative music AI.
         - **📚 Book Writing Studio:** Your personal AI writer's room to outline and draft a book in multiple languages.
         - **🌍 Bible Study Generator:** An AI team that creates in-depth, multilingual study guides for any book of the Bible.
+        - **🙏 AI Bible Study Assistant:** Your personal theology research partner. Find key scriptures on any topic and receive a custom devotional.
         - **📰 Newsroom HQ:** Commission a complete digital newspaper with your own team of AI journalists.
         - **🎬 Viral Video Studio:** An AI creative team that concepts a powerful, multi-part vertical video series and generates all the prompts and social hooks.
         - **🎧 Audio Suite:** Convert your generated text to speech or transcribe and translate existing audio files.
+         - **🍳 AI Chef Studio:** Discover global cuisines! Get complete meal plans (appetizer, main, dessert), full recipes, and even AI prompts to visualize your food.
+        - **🧑‍🏫 University AI Professor:** An academic assistant providing expert-level help for specific university and college courses.
+        - **🎓 AI Tutor (Grades 1-12):** An interactive learning assistant for school students, providing clear, curriculum-aware explanations for homework.
+        - **🌍 AI Language Academy:** Get a personalized 10-lesson study guide for any language and proficiency level.
+        - **🎙️ AI Podcast Studio:** Create a 10-minute, two-speaker podcast on any topic, tailored to your culture and language, and ready for download.
 
         ### How to Get Started:
         1.  **Configure Credentials:** Enter your **Gemini API Key** and **Serper API Key** in the sidebar. 
@@ -1347,12 +2335,16 @@ def main():
         render_sermon_page()
     elif selection == "Flyer Production Studio":
         render_flyer_page()
+    elif selection == "AI Image Studio":
+        render_image_studio_page()
     elif selection == "Worship Song Studio":
         render_music_page()
     elif selection == "Book Writing Studio":
         render_book_page()
     elif selection == "Bible Study Generator":
         render_bible_study_page()
+    elif selection == "AI Bible Search":
+        render_bible_search()
     elif selection == "Newsroom HQ":
         render_news_page()
     elif selection == "Viral Video Studio":
@@ -1361,6 +2353,18 @@ def main():
         render_audio_suite_page()
     elif selection == "Single Video Studio":
         single_render_viral_video_page()
+    elif selection == "AI Tutor (Grades 1-12)":
+      render_tutor_page()
+
+    elif selection == "University AI Professor":
+        render_university_tutor_page()
+    elif selection == "AI Chef Studio":
+        render_chef_page()
+    elif selection == "AI Language Academy":
+        render_language_academy_page()
+    elif selection == "AI Podcast Studio":
+        render_podcast_studio_page()
+
 
 
 if __name__ == "__main__":
