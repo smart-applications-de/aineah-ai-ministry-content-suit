@@ -1,12 +1,11 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-
 def render_user_guide_page():
     """Renders the interactive HTML user guide within the Streamlit app."""
     st.title("💡 User Guide & Help")
     st.markdown("An interactive guide to the AI Ministry & Content Suite. All the information you need in one place.")
-
+    
     html_content = """
     <!DOCTYPE html>
     <html lang="en" class="scroll-smooth">
@@ -66,10 +65,10 @@ def render_user_guide_page():
                     <div class="card p-6"><h3 class="text-xl font-semibold text-gray-800 mb-3">🎶 Worship Song Studio</h3><p class="text-gray-600">Write lyrics and create a musical concept for a new worship song.</p></div>
                     <div class="card p-6"><h3 class="text-xl font-semibold text-gray-800 mb-3">📚 Book Writing Studio</h3><p class="text-gray-600">Outline your book, then collaborate with an AI writing team to draft it chapter by chapter.</p></div>
                     <div class="card p-6"><h3 class="text-xl font-semibold text-gray-800 mb-3">🌍 Bible Study Generator</h3><p class="text-gray-600">Generate in-depth guides for any book of the Bible or create devotionals on specific topics.</p></div>
-                    <div class="card p-6"><h3 class="text-xl font-semibold text-gray-800 mb-3">✝️ Street Evangelism & Apologetics</h3><p class="text-gray-600">A multi-tool for ministry. Get answers to tough questions, generate a beginner's guide to evangelism, or access a list of the top 15 FAQs with answers.</p></div>
+                    <div class="card p-6"><h3 class="text-xl font-semibold text-gray-800 mb-3">✝️ Street Evangelism & Apologetics</h3><p class="text-gray-600">Get biblically sound answers to tough questions or generate a practical guide for beginners to evangelism.</p></div>
                     <div class="card p-6"><h3 class="text-xl font-semibold text-gray-800 mb-3">📰 Newsroom HQ</h3><p class="text-gray-600">Commission a complete digital newspaper with articles on various topics.</p></div>
                     <div class="card p-6"><h3 class="text-xl font-semibold text-gray-800 mb-3">🎬 Viral Video Studio</h3><p class="text-gray-600">Create concepts for short-form videos, from 5-part series to single clips.</p></div>
-                    <div class="card p-6"><h3 class="text-xl font-semibold text-gray-800 mb-3">🗣️ AI Language Academy</h3><p class="text-gray-600">A complete language learning hub. Generate a study guide, create custom exercises and exams, or develop a listening practice with transcripts and questions.</p></div>
+                    <div class="card p-6"><h3 class="text-xl font-semibold text-gray-800 mb-3">🗣️ AI Language Academy</h3><p class="text-gray-600">Generate a personalized, 10-lesson language course for any proficiency level.</p></div>
                     <div class="card p-6"><h3 class="text-xl font-semibold text-gray-800 mb-3">🍳 AI Chef Studio</h3><p class="text-gray-600">Get a three-course meal plan with recipes and AI prompts to visualize the dishes.</p></div>
                     <div class="card p-6"><h3 class="text-xl font-semibold text-gray-800 mb-3">🎙️ AI Podcast Studio</h3><p class="text-gray-600">Generate a complete, multi-speaker podcast episode from scratch.</p></div>
                     <div class="card p-6"><h3 class="text-xl font-semibold text-gray-800 mb-3">🎓 AI Tutor Suite</h3><p class="text-gray-600">Get expert help with homework questions for K-12 and University levels.</p></div>
@@ -115,4 +114,4 @@ def render_user_guide_page():
     </body>
     </html>
     """
-    components.html(html_content, scrolling=False)
+    components.html(html_content, height=1200, scrolling=True)

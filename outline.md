@@ -1,0 +1,25 @@
+```json
+{
+  "lessons": [
+    {
+      "title": "The Alphabet & Core Pronunciation",
+      "content": "# Lesson 1: The Alphabet & Core Pronunciation\n\nThis lesson introduces the French alphabet and fundamental pronunciation rules.  We'll focus on sounds that differ significantly from English.\n\n## The French Alphabet\n\nThe French alphabet is largely the same as the English alphabet, with a few additions: \n\n* **A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z**\n\n## Key Pronunciation Differences\n\n* **Nasal Vowels:** French has nasal vowels (sounds produced with air escaping through the nose). We will practice these sounds: `an`, `en`, `in`, `on`, `un`.\n* **R:** The French 'r' is a guttural sound, produced in the back of the throat.  We will practice this sound and its variations.\n* **Liaison:** This is the linking of sounds between words. We'll look at common examples.\n* **Silent Letters:** Many letters are silent in French. We'll identify common instances.\n\n## Practice Activities\n\n* **Alphabet recitation:** Practice saying the alphabet aloud.\n* **Sound discrimination:** Listen to audio examples of nasal vowels and the 'r' sound, and practice distinguishing them.\n* **Minimal pairs:** Practice distinguishing words that differ only by one sound (e.g., *vin* (wine) and *vain* (vain)).\n* **Reading practice:** Read aloud short sentences containing the sounds we've learned.\n* **Pronunciation exercises:** Work on improving your pronunciation through repetition and feedback."
+    },
+    {
+      "title": "Basic Greetings and Introductions",
+      "content": "# Lesson 2: Basic Greetings and Introductions\n\nLearn essential greetings and polite phrases to navigate basic social interactions.\n\n## Greetings\n\n* **Bonjour:** Hello (used during the day)\n* **Bonsoir:** Good evening/Good night\n* **Salut:** Hi (informal)\n\n## Introductions\n\n* **Je m'appelle…:** My name is…\n* **Enchanté(e):** Pleased to meet you (masculine/feminine)\n* **Comment allez-vous ?:** How are you? (formal)\n* **Ça va ?:** How's it going? (informal)\n* **Bien, merci:** Fine, thank you\n* **Et vous ?:** And you?\n\n## Practice Activities\n\n* **Role-playing:** Practice greetings and introductions with a partner.\n* **Listening comprehension:** Listen to audio examples of conversations and identify greetings and introductions.\n* **Sentence construction:** Create your own sentences using the vocabulary learned.\n* **Cultural notes:** Learn about appropriate greetings in different social contexts."
+    },
+    {
+      "title": "Basic Verb Conjugation (Present Tense)",
+      "content": "# Lesson 3: Basic Verb Conjugation (Present Tense)\n\nLearn the present tense conjugation of regular -er, -ir, and -re verbs.\n\n## Regular Verbs\n\nWe'll focus on the three most common verb types:\n\n* **-er verbs (e.g., parler - to speak):**  Learn the conjugation pattern for `je parle`, `tu parles`, `il/elle/on parle`, `nous parlons`, `vous parlez`, `ils/elles parlent`.\n* **-ir verbs (e.g., finir - to finish):** Learn the conjugation pattern.\n* **-re verbs (e.g., vendre - to sell):** Learn the conjugation pattern.\n\n## Irregular Verbs\n\nIntroduction to common irregular verbs like `être` (to be) and `avoir` (to have).\n\n## Practice Activities\n\n* **Verb conjugation drills:** Practice conjugating verbs in the present tense.\n* **Sentence creation:** Create sentences using the verbs learned in the present tense.\n* **Reading comprehension:** Read short texts containing the verbs learned and answer comprehension questions.\n* **Speaking practice:** Engage in conversations using the verbs learned."
+    },
+    {
+      "title": "Numbers and Telling Time",
+      "content": "# Lesson 4: Numbers and Telling Time\n\nLearn to count from 1 to 100 and tell time in French.\n\n## Numbers\n\nLearn the numbers from 1 to 100, paying attention to pronunciation and gendered numbers.\n\n## Telling Time\n\nLearn to tell time using `il est…` (it is…) and `il est… heures…` (it is… o'clock…)\n\n## Practice Activities\n\n* **Number recognition:** Identify numbers written in words and digits.\n* **Counting practice:** Practice counting aloud from 1 to 100.\n* **Time telling exercises:** Practice telling time in French.\n* **Real-world application:** Use numbers and time telling in simple sentences and scenarios."
+    }
+  ],
+  "final_exam": {
+    "content": "# Final Exam: A1 French Proficiency\n\nThis exam tests your comprehension and production of French at the A1 level.  It includes sections on:\n\n* **Listening Comprehension:**  Short dialogues and announcements.\n* **Reading Comprehension:** Short texts on everyday topics.\n* **Written Production:** Simple sentences and short paragraphs on familiar topics.\n* **Speaking Production:** Basic interactions and responses to simple questions."
+  }
+}
+```
