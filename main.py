@@ -914,7 +914,7 @@ def render_podcast_studio_page():
 
                     if audio_data:
                         st.success("Audio generated!")
-                        wav_bytes = pcm_to_wav(audio_data, channels=1, sample_width=2, sample_rate=24000))
+                        wav_bytes = pcm_to_wav(audio_data, channels=1, sample_width=2, sample_rate=24000)
                         st.audio(wav_bytes, format='audio/wav')
 
                        # st.audio(audio_data, format='audio/wav')
