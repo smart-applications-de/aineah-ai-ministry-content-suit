@@ -18,7 +18,7 @@ from google.generativeai import types
 from crewai import Agent, Task, Crew, Process, LLM
 from crewai_tools import SerperDevTool, ScrapeWebsiteTool
 import streamlit.components.v1 as components
-from main import  get_available_models, render_download_buttons
+from main_v2 import  get_available_models, render_download_buttons
 
 
 class LanguageAcademyCrew:
@@ -246,6 +246,9 @@ def render_language_academy_page():
             st.subheader(f"Your {target_language} ({level}) Study Guide")
             st.markdown(st.session_state.language_guide)
             render_download_buttons(st.session_state.language_guide, f"{target_language}_{level}_guide")
+            if st.button(f"🎧 Listen to this AI-Generated Language Guide"):
+                st.session_state['text_for_audio'] = st.session_state.language_guide
+                st.info("Go to the 'Audio Suite' page to generate the audio.")
 
     with tab2:
         st.header("Create Custom Exercises or a Final Exam")
@@ -276,6 +279,9 @@ def render_language_academy_page():
             st.subheader(f"Your {target_language_prac} ({level_prac}) {practice_type}")
             st.markdown(st.session_state.practice_material)
             render_download_buttons(st.session_state.practice_material, f"{target_language_prac}_{level_prac}_{practice_type}")
+            if st.button(f"🎧 Listen to this AI-Generated practice_material"):
+                st.session_state['text_for_audio'] = st.session_state.practice_material
+                st.info("Go to the 'Audio Suite' page to generate the audio.")
 
     with tab3:
         st.header("Create a Custom Listening Exercise")

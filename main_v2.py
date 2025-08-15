@@ -30,40 +30,8 @@ import streamlit.components.v1 as components
 from openai import api_key
 import crew_utis
 from user_guid import render_user_guide_page
-from stock_health import  render_health_support_page, render_stock_analyzer_page
 # This file holds global configurations and variables for your app.
-voice_names = [
-    "Zephyr",
-    "Puck",
-    "Charon",
-    "Kore",
-    "Fenrir",
-    "Leda",
-    "Orus",
-    "Aoede",
-    "Callirrhoe",
-    "Autonoe",
-    "Enceladus",
-    "Iapetus",
-    "Umbriel",
-    "Algieba",
-    "Despina",
-    "Erinome",
-    "Algenib",
-    "Rasalgethi",
-    "Laomedeia",
-    "Achernar",
-    "Alnilam",
-    "Schedar",
-    "Gacrux",
-    "Pulcherrima",
-    "Achird",
-    "Zubenelgenubi",
-    "Vindemiatrix",
-    "Sadachbia",
-    "Sadaltager",
-    "Sulafat"
-]
+
 gemini_supported_languages = (
     "Arabic",
     "Bengali",
@@ -312,7 +280,7 @@ class BookStudioCrew:
     def __init__(self, model_name, topic, language):
         os.environ["GOOGLE_API_KEY"] = st.session_state.get('gemini_key', '')
         os.environ["SERPER_API_KEY"] = st.session_state.get('serper_key', '')
-        self.llm = LLM(model=model_name, temperature=0.3, api_key=os.environ["GOOGLE_API_KEY"])
+        self.llm = LLM(model=model_name, temperature=0.7, api_key=os.environ["GOOGLE_API_KEY"])
         self.topic = topic; self.language = language
 
     def run_outline_crew(self, user_prompt):
@@ -480,7 +448,7 @@ class BibleStudyCrew:
     def __init__(self, model_name, language, translation):
         os.environ["GOOGLE_API_KEY"] = st.session_state.get('gemini_key', '')
         os.environ["SERPER_API_KEY"] = st.session_state.get('serper_key', '')
-        self.llm = LLM(model=model_name, temperature=0.3, api_key=os.environ["GOOGLE_API_KEY"])
+        self.llm = LLM(model=model_name, temperature=0.5, api_key=os.environ["GOOGLE_API_KEY"])
         self.language = language
         self.translation = translation
 
@@ -517,7 +485,7 @@ class BibleStudyCrew:
 class SchoolTutorCrew:
     def __init__(self, model_name, country, grade, subject, language):
         os.environ["GOOGLE_API_KEY"] = st.session_state.get('gemini_key', '')
-        self.llm = LLM(model=model_name, temperature=0.3, api_key=os.environ["GOOGLE_API_KEY"])
+        self.llm = LLM(model=model_name, temperature=0.7, api_key=os.environ["GOOGLE_API_KEY"])
         self.country = country; self.grade = grade; self.subject = subject; self.language = language
 
     def run(self, question):
@@ -917,7 +885,7 @@ def render_podcast_studio_page():
     if 'podcast_transcript' not in st.session_state: st.session_state.podcast_transcript = ""
     text_models = get_available_models(st.session_state.get('gemini_key'), task="generateContent")
     tts_models = get_available_models(st.session_state.get('gemini_key'), task="text-to-speech")
-    voices =voice_names
+    voices = ["Kore", "Puck", "Chipp", "Sadachbia", "Lyra", "Arpy", "Fable", "Onyx"]
 
     st.header("Step 1: Generate Script")
     with st.form("podcast_script_form"):
@@ -942,13 +910,15 @@ def render_podcast_studio_page():
             if st.form_submit_button("Create Podcast Audio", use_container_width=True):
                 with st.spinner("🎙️ AI is recording your podcast..."):
                     speaker_configs = [gen.types.SpeakerVoiceConfig(speaker=s1_name, voice_config=gen.types.VoiceConfig(prebuilt_voice_config=gen.types.PrebuiltVoiceConfig(voice_name=speaker1_voice))), gen.types.SpeakerVoiceConfig(speaker=s2_name, voice_config=gen.types.VoiceConfig(prebuilt_voice_config=gen.types.PrebuiltVoiceConfig(voice_name=speaker2_voice)))]
-                    st.session_state['audiodata_prod'] = PodcastStudioCrew.generate_audio(tts_model, st.session_state.transcript_editor, speaker_configs)
+                    audio_data = PodcastStudioCrew.generate_audio(tts_model, st.session_state.transcript_editor, speaker_configs)
 
-        if st.session_state.audiodata_prod:
-            st.success("Audio generated!")
-            wav_bytes = pcm_to_wav(st.session_state.get("audiodata_prod"), channels=1, sample_width=2, sample_rate=24000)
-            st.audio(wav_bytes, format='audio/wav')
-            st.download_button("⬇️ Download Podcast", wav_bytes, f"{st.session_state.podcast_topic.replace(' ', '_')}.wav")
+                    if audio_data:
+                        st.success("Audio generated!")
+                        wav_bytes = pcm_to_wav(audio_data, channels=1, sample_width=2, sample_rate=24000)
+                        st.audio(wav_bytes, format='audio/wav')
+
+                       # st.audio(audio_data, format='audio/wav')
+                       # st.download_button("⬇️ Download Podcast (.wav)", audio_data, f"{st.session_state.podcast_topic.replace(' ', '_')}.wav")
 
 def render_sermon_page():
     st.title("📖 AI Sermon Generator Crew")
@@ -973,9 +943,6 @@ def render_sermon_page():
         st.markdown("---"); st.subheader("Your Generated Sermon")
         st.markdown(st.session_state.sermon_content)
         render_download_buttons(st.session_state.sermon_content, "sermon")
-        if st.button("🎧 Listen to this  sermon "):
-           st.session_state['text_for_audio'] =st.session_state.sermon_content
-           st.info("Go to the 'Audio Suite' page to generate the audio.")
 
 def render_flyer_page():
     st.title("🚀 AI Flyer Production Studio")
@@ -1014,6 +981,8 @@ def render_flyer_page():
 
     if 'flyer_image' in st.session_state and st.session_state.flyer_image:
         st.markdown("---"); st.header("✅ Your Final Assets")
+        #st.image(st.session_state.flyer_image, caption="Generated Flyer")
+        # Create a dynamic number of columns for the image gallery
         cols = st.columns(len(st.session_state.flyer_image))
         for i, img in enumerate(st.session_state.flyer_image):
             with cols[i]:
@@ -1151,7 +1120,7 @@ def create_and_run_music_crew(api_key, genre, verses, topic, language, model_nam
     """Initializes and runs the music creation crew."""
     try:
         os.environ["GOOGLE_API_KEY"] = api_key
-        llm = LLM(model=model_name, temperature=0.3, api_key=os.environ["GOOGLE_API_KEY"])
+        llm = LLM(model=model_name, temperature=0.7, api_key=os.environ["GOOGLE_API_KEY"])
         search_tool = SerperDevTool(api_key=st.session_state['serper_key'])
     except Exception as e:
         st.error(f"Error initializing language model: {e}")
@@ -1293,9 +1262,6 @@ def render_bible_book_study_page():
     if "study_guide_content" in st.session_state and st.session_state.study_guide_content:
         st.markdown("---"); st.header("3. Your Custom Study Guide"); st.markdown(st.session_state.study_guide_content)
         render_download_buttons(st.session_state.study_guide_content, f"{selected_book_translated.replace(' ', '_')}_study_guide")
-        if st.button("🎧 Listen to this  study guide content"):
-           st.session_state['text_for_audio'] =st.session_state.study_guide_content
-           st.info("Go to the 'Audio Suite' page to generate the audio.")
 
 def render_bible_topic_study_page():
     st.title("🙏 AI Bible Topic Study")
@@ -1324,10 +1290,6 @@ def render_bible_topic_study_page():
     if "study_result" in st.session_state and st.session_state.study_result:
         st.markdown("---"); st.subheader(f"Study Results on '{topic}'"); st.markdown(st.session_state.study_result)
         render_download_buttons(st.session_state.study_result, f"bible_study_{topic.replace(' ', '_')}")
-        if st.button("🎧 Listen to this  bible study"):
-           st.session_state['text_for_audio'] =st.session_state.study_result
-           st.info("Go to the 'Audio Suite' page to generate the audio.")
-
 
 def render_news_page():
     st.title("📰 AI Newsroom Headquarters")
@@ -1340,10 +1302,9 @@ def render_news_page():
         scope = st.selectbox("Select Newspaper Scope:", ["Global", "National", "Local"])
         location = ""
         if scope == "Local":
-            #st.error(scope)
-            location = st.text_input("Enter City:", "NewYork")
+            location = st.text_input("Enter City:", "Nairobi")
         elif scope == "National":
-            location = st.text_input("Enter Country:", "USA")
+            location = st.text_input("Enter Country:", "Kenya")
 
         st.markdown("**Select the sections to include:**")
         topic_options = ["Top Story", "Local News", "Business & Finance", "Sports", "Technology", "Fashion & Trends","Arts & Culture ","Obituaries/Recent deaths","Weather, Comics, and Puzzles"]
@@ -1367,9 +1328,6 @@ def render_news_page():
         st.subheader(f"The {st.session_state.get('newspaper_location', 'Global')} Times")
         st.markdown(st.session_state.newspaper_content, unsafe_allow_html=True)
         render_download_buttons(st.session_state.newspaper_content, "newspaper")
-        if st.button("🎧 Listen to this  digital newspapaer"):
-           st.session_state['text_for_audio'] =st.session_state.newspaper_content
-           st.info("Go to the 'Audio Suite' page to generate the audio.")
 
 def render_viral_video_page():
     st.title("🎬 AI Viral Video Series Studio")
@@ -1462,10 +1420,6 @@ def render_school_tutor_page():
         st.markdown("---"); st.subheader("✨ Here's your explanation:")
         st.markdown(st.session_state.school_result)
         render_download_buttons(st.session_state.school_result, "school_homework_help")
-        if st.button("🎧 Listen to this Homework  Tutorial"):
-           st.session_state['text_for_audio'] =st.session_state.school_result
-           st.info("Go to the 'Audio Suite' page to generate the audio.")
-
 
 def render_university_tutor_page():
     st.title("🧑‍🏫 University AI Professor")
@@ -1492,9 +1446,6 @@ def render_university_tutor_page():
         st.markdown("---"); st.subheader("✨ Professor's Explanation:")
         st.markdown(st.session_state.uni_result)
         render_download_buttons(st.session_state.uni_result, "university_homework_help")
-        if st.button(f"🎧 Listen to this  task results"):
-           st.session_state['text_for_audio'] =st.session_state.uni_result
-           st.info("Go to the 'Audio Suite' page to generate the audio.")
 
 def render_audio_suite_page():
     st.title("🎧 AI Audio Suite")
@@ -1506,27 +1457,26 @@ def render_audio_suite_page():
     with tab1:
         st.subheader("Convert Text into High-Quality Audio")
         tts_models = get_available_models(st.session_state.get('gemini_key'), task="text-to-speech")
-        voices = voice_names
+        voices = ["Kore", "Puck", "Chipp", "Sadachbia", "Lyra", "Arpy", "Fable", "Onyx"]
 
 
         with st.form("tts_form"):
-            st.session_state['text_for_audio'] = st.text_area("Enter text to convert to audio:", height=150,value=st.session_state.get('text_for_audio',''))
+            text_to_convert = st.text_area("Enter text to convert to audio:", height=150, key="text_for_audio")
             col1, col2 = st.columns(2)
             selected_voice = col1.selectbox("Choose a Voice:", voices)
             selected_tts_model = col2.selectbox("Choose Audio Model:", tts_models) if tts_models else None
             
             if st.form_submit_button("🎤 Generate Audio", use_container_width=True):
-                if not  st.session_state['text_for_audio']: st.error("Please enter some text.")
+                if not text_to_convert: st.error("Please enter some text.")
                 elif not selected_tts_model: st.error("Please select an audio model.")
                 else:
                     with st.spinner("Generating audio..."):
-                        st.session_state['audio_data']= AudioSuiteCrew.generate_audio(selected_tts_model,  st.session_state['text_for_audio'], selected_voice)
-
-        if st.session_state['audio_data']:
-            st.success("Audio Generated!")
-            wav_bytes = pcm_to_wav(st.session_state.get('audio_data'), channels=1, sample_width=2, sample_rate=24000)
-            st.audio(wav_bytes, format='audio/wav')
-            st.download_button("⬇️ Download Audio", wav_bytes, f"{selected_tts_model}_{selected_voice}.mp3", "audio/mpeg")
+                        audio_data = AudioSuiteCrew.generate_audio(selected_tts_model, text_to_convert, selected_voice)
+                        if audio_data:
+                            st.success("Audio Generated!")
+                            wav_bytes = pcm_to_wav(audio_data, channels=1, sample_width=2, sample_rate=24000)
+                            st.audio(wav_bytes, format='audio/wav')
+                            #st.download_button("⬇️ Download Audio (.wav)", wav_bytes, "generated_audio.wav", "audio/wav")
 
     with tab2:
         st.subheader("Translate Text to a Different Language")
@@ -1549,9 +1499,6 @@ def render_audio_suite_page():
             st.markdown("---"); st.subheader(f"Translation ({translation_language}):")
             st.markdown(st.session_state.translated_text)
             render_download_buttons(st.session_state.translated_text, "translated_text")
-            if st.button(f"🎧 Listen to this  translated_text"):
-                st.session_state['text_for_audio'] = st.session_state.translated_text
-               # st.info("Go to the 'Audio Suite' page to generate the audio.")
 
     with tab3:
         st.subheader("Upload an Audio File to Transcribe and Translate")
@@ -1585,9 +1532,6 @@ def render_audio_suite_page():
             st.markdown("---"); st.subheader(f"Translated Transcript ({translation_language_audio}):")
             st.markdown(st.session_state.translated_transcript)
             render_download_buttons(st.session_state.translated_transcript, "translated_transcript")
-            if st.button(f"🎧 Listen to this  translatedt"):
-                st.session_state['text_for_audio'] = st.session_state.translated_transcript
-                st.info("Go to the 'Audio Suite' page to generate the audio.")
 
 def main_render_user_guide_page():
     render_user_guide_page()
@@ -1614,16 +1558,16 @@ def main():
     
     st.sidebar.title("Navigation")
     page_options = {
-        "Home": "🏠", "User Guide & Help": "💡", "Sermon Generator": "📖", "Flyer Production Studio": "🚀", "Image  Studio": "🖼️", "Worship Song Studio": "🎶",
+        "Home": "🏠", "User Guide & Help": "💡", "Sermon Generator": "📖", "Flyer Production Studio": "🚀", "Image Editing Studio": "🖼️", "Worship Song Studio": "🎶",
         "Book Writing Studio": "📚", "Bible Book Study": "🌍", "Bible Topic Study": "🙏", "Newsroom HQ": "📰", 
         "Viral Video Series Studio": "🎬", "Single Video Studio": "📹", "AI Podcast Studio": "🎙️", "AI Chef Studio": "🍳", 
         "AI Language Academy": "🗣️", "AI Tutor (Grades 1-12)": "🎓", "University AI Professor": "🧑‍🏫", "AI Audio Suite": "🎧",
-        "Street Evangelism": "✝️","AI Stock Analysis Studio":"📈", "AI Health & Wellness Suite":"❤️‍🩹"
+        "Street Evangelism": "✝️"
     }
     selection = st.sidebar.radio("Go to", list(page_options.keys()))
     
     keys_needed = {
-        "Sermon Generator": ['gemini_key'], "Flyer Production Studio": ['gemini_key', 'serper_key'], "Image  Studio": ['gemini_key'],
+        "Sermon Generator": ['gemini_key'], "Flyer Production Studio": ['gemini_key', 'serper_key'], "Image Editing Studio": ['gemini_key'],
         "Worship Song Studio": ['gemini_key', 'serper_key'], "Book Writing Studio": ['gemini_key', 'serper_key'],
         "Bible Book Study": ['gemini_key', 'serper_key'], "Bible Topic Study": ['gemini_key', 'serper_key'],
         "Newsroom HQ": ['gemini_key', 'serper_key'], "Viral Video Series Studio": ['gemini_key'], "Single Video Studio": ['gemini_key'],
@@ -1642,10 +1586,10 @@ def main():
         st.markdown("---")
         st.header("🔗 Connect With Me")
         st.markdown("""
-        - **Facebook:** Dive into our community discussions and live events. [Join the Conversation](https://www.facebook.com/profile.php?id=100027104631463&locale=de_DE)
+        - **Facebook:** Dive into our community discussions and live events. [Join the Conversation](https://www.facebook.com/)
         - **TikTok:** Catch daily inspiration and creative shorts. [Watch Now](https://www.tiktok.com/)
         - **Instagram:** Explore a visual journey of faith and creativity. [Follow Us](https://www.instagram.com/)
-        - **YouTube:** Watch in-depth teachings, sermons, and tutorials. [Subscribe Here](https://studio.youtube.com/channel/UCcHJeYbW6sfIO-a_LoWv3DQ/)
+        - **YouTube:** Watch in-depth teachings, sermons, and tutorials. [Subscribe Here](https://www.youtube.com/)
         - **Smart Generative App:** Explore another one of my powerful AI applications. [Try it Out](https://smart-app-generative-ai-crew-ai-de.streamlit.app/)
         """)
 
@@ -1669,7 +1613,7 @@ def main():
     elif selection == "User Guide & Help":  main_render_user_guide_page()
     elif selection == "Sermon Generator": render_sermon_page()
     elif selection == "Flyer Production Studio": render_flyer_page()
-    elif selection == "Image  Studio": render_image_editing_page()
+    elif selection == "Image Editing Studio": render_image_editing_page()
     elif selection == "Worship Song Studio": render_music_page()
     elif selection == "Book Writing Studio": render_book_page()
     elif selection == "Bible Book Study": render_bible_book_study_page()
@@ -1684,9 +1628,6 @@ def main():
     elif selection == "University AI Professor": render_university_tutor_page()
     elif selection == "AI Audio Suite": render_audio_suite_page()
     elif selection == "Street Evangelism": crew_utis.render_street_evangelism_page()
-    elif selection == "AI Stock Analysis Studio":
-        render_stock_analyzer_page()
-    elif selection == "AI Health & Wellness Suite": render_health_support_page()
 
 if __name__ == "__main__":
     main()
