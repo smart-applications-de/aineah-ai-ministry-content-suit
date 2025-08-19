@@ -18,9 +18,23 @@ from google.generativeai import types
 from crewai import Agent, Task, Crew, Process, LLM
 from crewai_tools import SerperDevTool, ScrapeWebsiteTool
 import streamlit.components.v1 as components
+import pandas as pd
 from main_v2 import  get_available_models, render_download_buttons
 
-
+def parse_json_from_text(text):
+    """Safely extracts a JSON object from a string."""
+    match = re.search(r'```json\n({.*?})\n```', text, re.DOTALL)
+    if match:
+        try:
+            return json.loads(match.group(1))
+        except json.JSONDecodeError:
+            st.error("AI returned an invalid JSON structure. Please try again.")
+            return None
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        st.warning("Could not parse the AI's JSON response. It may not be a clean JSON object.")
+        return None
 class LanguageAcademyCrew:
     def __init__(self, model_name, native_language, target_language, level):
         os.environ["GOOGLE_API_KEY"] = st.session_state.get('gemini_key', '')
@@ -155,6 +169,29 @@ class LanguageListeningCrew:
         crew.kickoff()
         with open("listening_practice.md", "r", encoding="utf-8") as f:
             return f.read()
+class VocabularyCrew:
+    def __init__(self, model_name, native_language, target_language, level, scope):
+        os.environ["GOOGLE_API_KEY"] = st.session_state.get('gemini_key', '')
+        self.llm = LLM(model=model_name, temperature=0.7, api_key=os.environ["GOOGLE_API_KEY"])
+        self.native_language = native_language
+        self.target_language = target_language
+        self.level = level
+        self.scope = scope
+
+    def run(self):
+        agents = [
+            Agent(role='Expert Lexicographer', goal=f"Generate a list of at least 100 essential vocabulary words in {self.target_language} related to '{self.scope}' for a {self.level} learner.", backstory="You are a lexicographer who specializes in creating CEFR-leveled thematic vocabulary lists for language learners. Your word choices are always practical and relevant.", llm=self.llm, verbose=True),
+            Agent(role='Professional Translator', goal=f"Translate the list of {self.target_language} words into {self.native_language} and English.", backstory=f"You are a professional translator fluent in {self.target_language}, {self.native_language}, and English. You ensure accurate and contextually appropriate translations.", llm=self.llm, verbose=True),
+            Agent(role='Applied Linguist & Editor', goal=f"For each word, provide a simple explanation or an example sentence in {self.target_language}. Then, compile all information into a structured JSON object.", backstory="You are a linguist who excels at explaining vocabulary in a simple, contextual way for learners. You are also meticulous at structuring data for applications.", llm=self.llm, verbose=True)
+        ]
+        task_generate_words = Task(description=f"Create a list of at least 100 vocabulary words in {self.target_language} for a {self.level} learner, focusing on the topic of '{self.scope}'.", agent=agents[0], expected_output="A clean list of 100+ words in {self.target_language}.")
+        task_translate = Task(description=f"Translate the provided list of {self.target_language} words into two columns: one for {self.native_language} and one for English.", agent=agents[1], context=[task_generate_words], expected_output="A three-column list of words: Target Language, Native Language, English.")
+        task_compile = Task(description=f"For each word in the translated list, add a fourth column with a simple explanation or example sentence in {self.target_language}. Finally, format the entire result into a single JSON object. The JSON must have a key 'vocabulary' which is an array of objects. Each object must have four keys: 'target_word', 'native_translation', 'english_translation', and 'explanation'. The final output MUST be ONLY the raw JSON object, without any markdown formatting.", agent=agents[2], context=[task_translate], expected_output="A single JSON object containing the structured vocabulary list.", output_file="vocabulary_list.json")
+
+        crew = Crew(agents=agents, tasks=[task_generate_words, task_translate, task_compile], process=Process.sequential, verbose=True)
+        crew.kickoff()
+        with open("vocabulary_list.json", "r", encoding="utf-8") as f:
+            return parse_json_from_text(f.read())
 class StreetEvangelismCrew:
     def __init__(self, model_name, language):
         os.environ["GOOGLE_API_KEY"] = st.session_state.get('gemini_key', '')
@@ -214,7 +251,7 @@ def render_language_academy_page():
     st.title("🗣️ AI Language Academy")
     st.markdown("Your interactive hub for mastering a new language.")
 
-    tab1, tab2, tab3 = st.tabs(["**Study Guide**", "**Practice & Exams**", "**Listening Practice**"])
+    tab1, tab2, tab3,tab4 = st.tabs(["**Study Guide**", "**Practice & Exams**", "**Listening Practice**","**Vocabulary Builder**"])
 
     with tab1:
         st.header("Generate a Comprehensive Study Guide")
@@ -325,6 +362,56 @@ def render_language_academy_page():
                 st.error(err)
 
             render_download_buttons(st.session_state.listening_material, f"{target_language_listen}_{level_listen}_listening_practice")
+
+
+    with tab4:
+        st.header("Build Your Thematic Vocabulary List")
+        if 'vocabulary_list' not in st.session_state: st.session_state.vocabulary_list = None
+        available_models = get_available_models(st.session_state.get('gemini_key'))
+        LANGUAGES = ("English", "German", "French", "Swahili", "Italian", "Spanish", "Portuguese")
+
+        scope = ["Home", "Work", "University", "School", "Hospital", "Restaurant", "Hobbies", "Sport", "Health", "Fitness",
+                 "Holiday", "Travel", "Beach", "?"]
+        with st.form("vocabulary_form"):
+            col1, col2 = st.columns(2)
+            native_language_voc = col1.text_input("Your Language", "English", key="voc_native")
+            target_language_voc = col2.text_input("Language to Learn", "French", key="voc_target")
+
+            col3, col4 = st.columns(2)
+            level_voc = col3.selectbox("Select Level (CEFR)", ["A1", "A2", "B1", "B2", "C1", "C2"], key="voc_level")
+            scope_voc = col4.text_input("Enter scope", "Hospital")
+
+            selected_model_voc = st.selectbox("Choose AI Model", available_models,
+                                              key="voc_model") if available_models else None
+
+            if st.form_submit_button("Generate Vocabularies", use_container_width=True):
+                if not all([native_language_voc, target_language_voc, selected_model_voc, level_voc, scope_voc]):
+                    st.error("Please fill all fields and select a model.")
+
+                else:
+                    with st.spinner(f"The AI linguistics team is compiling your vocabulary list for '{scope_voc}'..."):
+                        crew = VocabularyCrew(selected_model_voc, native_language_voc, target_language_voc, level_voc,
+                                              scope_voc)
+                        st.session_state.vocabulary_list = crew.run()
+
+        if st.session_state.get('vocabulary_list'):
+            st.markdown("---")
+            st.subheader(f"Your {target_language_voc} Vocabulary for '{scope_voc}' ({level_voc})")
+
+            vocab_data = st.session_state.vocabulary_list.get('vocabulary', [])
+            if vocab_data:
+
+                df = pd.DataFrame(vocab_data)
+                if f"{native_language_voc}"=='English':
+                    df.columns = [f"{target_language_voc} Word", f"{native_language_voc} Translation", "English Translation_1",
+                                  f"Explanation in {target_language_voc}"]
+                    st.dataframe(df)
+
+                    markdown_for_download = df.to_markdown(index=False)
+                    render_download_buttons(markdown_for_download, f"{target_language_voc}_{scope_voc}_vocabulary")
+            else:
+                st.warning("Could not display the vocabulary list in a table. Please check the raw output.")
+                st.json(st.session_state.vocabulary_list)
 def render_street_evangelism_page():
     st.title("✝️ Street Evangelism & Apologetics")
     st.markdown("Equipping you to fulfill the Great Commission (Matthew 28:17-20) with grace and truth.")

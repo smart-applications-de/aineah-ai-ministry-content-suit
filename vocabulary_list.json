@@ -1,0 +1,624 @@
+```json
+{
+  "vocabulary": [
+    {
+      "target_word": "le médecin",
+      "native_translation": "doctor",
+      "english_translation": "doctor",
+      "explanation": "Le médecin examine les patients et prescrit des traitements."
+    },
+    {
+      "target_word": "l'infirmière",
+      "native_translation": "nurse",
+      "english_translation": "nurse",
+      "explanation": "L'infirmière aide le médecin et s'occupe des patients."
+    },
+    {
+      "target_word": "le patient",
+      "native_translation": "patient",
+      "english_translation": "patient",
+      "explanation": "Le patient est la personne malade qui consulte un médecin."
+    },
+    {
+      "target_word": "le chirurgien",
+      "native_translation": "surgeon",
+      "english_translation": "surgeon",
+      "explanation": "Le chirurgien réalise des opérations chirurgicales."
+    },
+    {
+      "target_word": "le spécialiste",
+      "native_translation": "specialist",
+      "english_translation": "specialist",
+      "explanation": "Le spécialiste est un médecin expert dans un domaine précis."
+    },
+    {
+      "target_word": "le réceptionniste",
+      "native_translation": "receptionist",
+      "english_translation": "receptionist",
+      "explanation": "Le réceptionniste accueille les patients et gère les rendez-vous."
+    },
+    {
+      "target_word": "le pharmacien",
+      "native_translation": "pharmacist",
+      "english_translation": "pharmacist",
+      "explanation": "Le pharmacien prépare et distribue les médicaments."
+    },
+    {
+      "target_word": "le dentiste",
+      "native_translation": "dentist",
+      "english_translation": "dentist",
+      "explanation": "Le dentiste soigne les dents."
+    },
+    {
+      "target_word": "le kinésithérapeute",
+      "native_translation": "physiotherapist",
+      "english_translation": "physiotherapist",
+      "explanation": "Le kinésithérapeute aide à la rééducation physique."
+    },
+    {
+      "target_word": "l'orthophoniste",
+      "native_translation": "speech therapist",
+      "english_translation": "speech therapist",
+      "explanation": "L'orthophoniste traite les troubles de la parole."
+    },
+    {
+      "target_word": "le radiologue",
+      "native_translation": "radiologist",
+      "english_translation": "radiologist",
+      "explanation": "Le radiologue interprète les images médicales (radiographies, échographies...). "
+    },
+    {
+      "target_word": "l'assistant(e) médical(e)",
+      "native_translation": "medical assistant",
+      "english_translation": "medical assistant",
+      "explanation": "L'assistant(e) médical(e) aide le médecin dans ses tâches."
+    },
+    {
+      "target_word": "le visiteur",
+      "native_translation": "visitor",
+      "english_translation": "visitor",
+      "explanation": "Le visiteur vient rendre visite à un patient."
+    },
+    {
+      "target_word": "la famille",
+      "native_translation": "family",
+      "english_translation": "family",
+      "explanation": "La famille soutient le patient."
+    },
+    {
+      "target_word": "l'ambulancier",
+      "native_translation": "paramedic",
+      "english_translation": "paramedic",
+      "explanation": "L'ambulancier transporte les patients en urgence."
+    },
+    {
+      "target_word": "l'hôpital",
+      "native_translation": "hospital",
+      "english_translation": "hospital",
+      "explanation": "L'hôpital est un établissement de soins."
+    },
+    {
+      "target_word": "la clinique",
+      "native_translation": "clinic",
+      "english_translation": "clinic",
+      "explanation": "La clinique est un établissement de soins, souvent plus spécialisé."
+    },
+    {
+      "target_word": "le cabinet médical",
+      "native_translation": "doctor's office",
+      "english_translation": "doctor's office",
+      "explanation": "Le cabinet médical est le lieu de consultation d'un médecin."
+    },
+    {
+      "target_word": "la salle d'attente",
+      "native_translation": "waiting room",
+      "english_translation": "waiting room",
+      "explanation": "La salle d'attente est l'endroit où les patients attendent leur rendez-vous."
+    },
+    {
+      "target_word": "la réception",
+      "native_translation": "reception",
+      "english_translation": "reception",
+      "explanation": "À la réception, on peut prendre rendez-vous."
+    },
+    {
+      "target_word": "le bureau",
+      "native_translation": "office",
+      "english_translation": "office",
+      "explanation": "Le bureau est le lieu de travail d'un médecin ou d'une infirmière."
+    },
+    {
+      "target_word": "la chambre",
+      "native_translation": "room",
+      "english_translation": "room",
+      "explanation": "La chambre est où le patient reste à l'hôpital."
+    },
+    {
+      "target_word": "le lit",
+      "native_translation": "bed",
+      "english_translation": "bed",
+      "explanation": "Le patient repose sur le lit."
+    },
+    {
+      "target_word": "les toilettes",
+      "native_translation": "toilets",
+      "english_translation": "toilets",
+      "explanation": "Les toilettes sont les sanitaires."
+    },
+    {
+      "target_word": "la salle de bain",
+      "native_translation": "bathroom",
+      "english_translation": "bathroom",
+      "explanation": "La salle de bain contient une douche ou une baignoire."
+    },
+    {
+      "target_word": "le couloir",
+      "native_translation": "corridor",
+      "english_translation": "corridor",
+      "explanation": "Le couloir permet de circuler dans l'hôpital."
+    },
+    {
+      "target_word": "l'ascenseur",
+      "native_translation": "elevator/lift",
+      "english_translation": "elevator/lift",
+      "explanation": "L'ascenseur permet de monter et descendre les étages."
+    },
+    {
+      "target_word": "les urgences",
+      "native_translation": "emergency room",
+      "english_translation": "emergency room",
+      "explanation": "Aux urgences, on traite les cas graves."
+    },
+    {
+      "target_word": "le bloc opératoire",
+      "native_translation": "operating room",
+      "english_translation": "operating room",
+      "explanation": "Le bloc opératoire est l'endroit où se déroulent les opérations."
+    },
+    {
+      "target_word": "la pharmacie",
+      "native_translation": "pharmacy (within the hospital)",
+      "english_translation": "pharmacy (within the hospital)",
+      "explanation": "La pharmacie de l'hôpital distribue les médicaments aux patients."
+    },
+    {
+      "target_word": "le laboratoire",
+      "native_translation": "laboratory",
+      "english_translation": "laboratory",
+      "explanation": "Le laboratoire effectue des analyses médicales."
+    },
+    {
+      "target_word": "la radiologie",
+      "native_translation": "radiology department",
+      "english_translation": "radiology department",
+      "explanation": "Le service de radiologie réalise des radiographies."
+    },
+    {
+      "target_word": "le stéthoscope",
+      "native_translation": "stethoscope",
+      "english_translation": "stethoscope",
+      "explanation": "Le médecin utilise le stéthoscope pour écouter le cœur et les poumons."
+    },
+    {
+      "target_word": "le thermomètre",
+      "native_translation": "thermometer",
+      "english_translation": "thermometer",
+      "explanation": "On utilise le thermomètre pour mesurer la température."
+    },
+    {
+      "target_word": "le bandage",
+      "native_translation": "bandage",
+      "english_translation": "bandage",
+      "explanation": "Le bandage sert à protéger une blessure."
+    },
+    {
+      "target_word": "la seringue",
+      "native_translation": "syringe",
+      "english_translation": "syringe",
+      "explanation": "La seringue sert à injecter des médicaments."
+    },
+    {
+      "target_word": "l'aiguille",
+      "native_translation": "needle",
+      "english_translation": "needle",
+      "explanation": "L'aiguille est utilisée avec la seringue."
+    },
+    {
+      "target_word": "le pansement",
+      "native_translation": "dressing",
+      "english_translation": "dressing",
+      "explanation": "Le pansement recouvre une blessure."
+    },
+    {
+      "target_word": "les médicaments",
+      "native_translation": "medications",
+      "english_translation": "medications",
+      "explanation": "Les médicaments soulagent la douleur ou soignent la maladie."
+    },
+    {
+      "target_word": "les pilules",
+      "native_translation": "pills",
+      "english_translation": "pills",
+      "explanation": "Les pilules sont une forme de médicament."
+    },
+    {
+      "target_word": "les comprimés",
+      "native_translation": "tablets",
+      "english_translation": "tablets",
+      "explanation": "Les comprimés sont une forme de médicament."
+    },
+    {
+      "target_word": "le sirop",
+      "native_translation": "syrup",
+      "english_translation": "syrup",
+      "explanation": "Le sirop est une forme de médicament liquide."
+    },
+    {
+      "target_word": "la prescription",
+      "native_translation": "prescription",
+      "english_translation": "prescription",
+      "explanation": "La prescription indique les médicaments à prendre."
+    },
+    {
+      "target_word": "l'ordonnance",
+      "native_translation": "prescription",
+      "english_translation": "prescription",
+      "explanation": "L'ordonnance est le document qui permet d'obtenir les médicaments."
+    },
+    {
+      "target_word": "l'examen médical",
+      "native_translation": "medical examination",
+      "english_translation": "medical examination",
+      "explanation": "L'examen médical permet de diagnostiquer la maladie."
+    },
+    {
+      "target_word": "l'opération",
+      "native_translation": "operation/surgery",
+      "english_translation": "operation/surgery",
+      "explanation": "L'opération est une intervention chirurgicale."
+    },
+    {
+      "target_word": "la radiographie",
+      "native_translation": "X-ray",
+      "english_translation": "X-ray",
+      "explanation": "La radiographie est une image médicale."
+    },
+    {
+      "target_word": "l'échographie",
+      "native_translation": "ultrasound",
+      "english_translation": "ultrasound",
+      "explanation": "L'échographie utilise les ultrasons pour créer une image."
+    },
+    {
+      "target_word": "l'IRM",
+      "native_translation": "MRI scan",
+      "english_translation": "MRI scan",
+      "explanation": "L'IRM utilise un champ magnétique pour créer une image."
+    },
+    {
+      "target_word": "le scanner",
+      "native_translation": "CT scan",
+      "english_translation": "CT scan",
+      "explanation": "Le scanner utilise les rayons X pour créer une image."
+    },
+    {
+      "target_word": "l'analyse de sang",
+      "native_translation": "blood test",
+      "english_translation": "blood test",
+      "explanation": "L'analyse de sang permet d'examiner le sang."
+    },
+    {
+      "target_word": "le vaccin",
+      "native_translation": "vaccine",
+      "english_translation": "vaccine",
+      "explanation": "Le vaccin protège contre certaines maladies."
+    },
+    {
+      "target_word": "l'injection",
+      "native_translation": "injection",
+      "english_translation": "injection",
+      "explanation": "L'injection consiste à injecter un médicament."
+    },
+    {
+      "target_word": "la prise de sang",
+      "native_translation": "blood draw",
+      "english_translation": "blood draw",
+      "explanation": "La prise de sang consiste à prélever du sang."
+    },
+    {
+      "target_word": "la douleur",
+      "native_translation": "pain",
+      "english_translation": "pain",
+      "explanation": "La douleur est une sensation désagréable."
+    },
+    {
+      "target_word": "la fièvre",
+      "native_translation": "fever",
+      "english_translation": "fever",
+      "explanation": "La fièvre est une température corporelle élevée."
+    },
+    {
+      "target_word": "la toux",
+      "native_translation": "cough",
+      "english_translation": "cough",
+      "explanation": "La toux est une expulsion d'air des poumons."
+    },
+    {
+      "target_word": "le rhume",
+      "native_translation": "cold",
+      "english_translation": "cold",
+      "explanation": "Le rhume est une maladie bénigne."
+    },
+    {
+      "target_word": "la grippe",
+      "native_translation": "flu",
+      "english_translation": "flu",
+      "explanation": "La grippe est une maladie virale."
+    },
+    {
+      "target_word": "la maladie",
+      "native_translation": "illness",
+      "english_translation": "illness",
+      "explanation": "La maladie est un état de santé altéré."
+    },
+    {
+      "target_word": "la blessure",
+      "native_translation": "injury",
+      "english_translation": "injury",
+      "explanation": "La blessure est une lésion corporelle."
+    },
+    {
+      "target_word": "la fracture",
+      "native_translation": "fracture",
+      "english_translation": "fracture",
+      "explanation": "La fracture est une cassure d'un os."
+    },
+    {
+      "target_word": "l'infection",
+      "native_translation": "infection",
+      "english_translation": "infection",
+      "explanation": "L'infection est une invasion de microbes."
+    },
+    {
+      "target_word": "l'allergie",
+      "native_translation": "allergy",
+      "english_translation": "allergy",
+      "explanation": "L'allergie est une réaction immunitaire."
+    },
+    {
+      "target_word": "le mal de tête",
+      "native_translation": "headache",
+      "english_translation": "headache",
+      "explanation": "Le mal de tête est une douleur à la tête."
+    },
+    {
+      "target_word": "le mal de ventre",
+      "native_translation": "stomachache",
+      "english_translation": "stomachache",
+      "explanation": "Le mal de ventre est une douleur à l'estomac."
+    },
+    {
+      "target_word": "la diarrhée",
+      "native_translation": "diarrhea",
+      "english_translation": "diarrhea",
+      "explanation": "La diarrhée est une émission fréquente de selles liquides."
+    },
+    {
+      "target_word": "la nausée",
+      "native_translation": "nausea",
+      "english_translation": "nausea",
+      "explanation": "La nausée est une sensation de malaise."
+    },
+    {
+      "target_word": "les vomissements",
+      "native_translation": "vomiting",
+      "english_translation": "vomiting",
+      "explanation": "Les vomissements sont l'expulsion de nourriture de l'estomac."
+    },
+    {
+      "target_word": "consulter",
+      "native_translation": "to consult",
+      "english_translation": "to consult",
+      "explanation": "Je dois consulter un médecin pour mon rhume."
+    },
+    {
+      "target_word": "soigner",
+      "native_translation": "to treat/cure",
+      "english_translation": "to treat/cure",
+      "explanation": "Le médecin va soigner ma blessure."
+    },
+    {
+      "target_word": "examiner",
+      "native_translation": "to examine",
+      "english_translation": "to examine",
+      "explanation": "Le médecin m'a examiné attentivement."
+    },
+    {
+      "target_word": "opérer",
+      "native_translation": "to operate",
+      "english_translation": "to operate",
+      "explanation": "Le chirurgien va m'opérer demain."
+    },
+    {
+      "target_word": "prescrire",
+      "native_translation": "to prescribe",
+      "english_translation": "to prescribe",
+      "explanation": "Le médecin m'a prescrit des antibiotiques."
+    },
+    {
+      "target_word": "prendre",
+      "native_translation": "to take (medication)",
+      "english_translation": "to take (medication)",
+      "explanation": "Je dois prendre mes médicaments trois fois par jour."
+    },
+    {
+      "target_word": "injecter",
+      "native_translation": "to inject",
+      "english_translation": "to inject",
+      "explanation": "L'infirmière va m'injecter le vaccin."
+    },
+    {
+      "target_word": "bandager",
+      "native_translation": "to bandage",
+      "english_translation": "to bandage",
+      "explanation": "L'infirmière a bandagé ma blessure."
+    },
+    {
+      "target_word": "guérir",
+      "native_translation": "to heal/cure",
+      "english_translation": "to heal/cure",
+      "explanation": "J'espère que je vais guérir rapidement."
+    },
+    {
+      "target_word": "souffrir",
+      "native_translation": "to suffer",
+      "english_translation": "to suffer",
+      "explanation": "Je souffre d'un mal de tête terrible."
+    },
+    {
+      "target_word": "attendre",
+      "native_translation": "to wait",
+      "english_translation": "to wait",
+      "explanation": "J'attends mon tour dans la salle d'attente."
+    },
+    {
+      "target_word": "appeler",
+      "native_translation": "to call",
+      "english_translation": "to call",
+      "explanation": "J'ai appelé le médecin pour prendre rendez-vous."
+    },
+    {
+      "target_word": "rentrer",
+      "native_translation": "to enter",
+      "english_translation": "to enter",
+      "explanation": "Je suis rentré dans le cabinet médical."
+    },
+    {
+      "target_word": "sortir",
+      "native_translation": "to leave",
+      "english_translation": "to leave",
+      "explanation": "Je suis sorti de l'hôpital."
+    },
+    {
+      "target_word": "malade",
+      "native_translation": "sick/ill",
+      "english_translation": "sick/ill",
+      "explanation": "Je suis malade, j'ai de la fièvre."
+    },
+    {
+      "target_word": "blessé(e)",
+      "native_translation": "injured",
+      "english_translation": "injured",
+      "explanation": "Je suis blessé(e) à la jambe."
+    },
+    {
+      "target_word": "gravement malade",
+      "native_translation": "seriously ill",
+      "english_translation": "seriously ill",
+      "explanation": "Il est gravement malade et doit être hospitalisé."
+    },
+    {
+      "target_word": "urgent(e)",
+      "native_translation": "urgent",
+      "english_translation": "urgent",
+      "explanation": "C'est une situation urgente !"
+    },
+    {
+      "target_word": "grave",
+      "native_translation": "serious",
+      "english_translation": "serious",
+      "explanation": "C'est une blessure grave."
+    },
+    {
+      "target_word": "léger(e)",
+      "native_translation": "mild",
+      "english_translation": "mild",
+      "explanation": "C'est une douleur légère."
+    },
+    {
+      "target_word": "bien",
+      "native_translation": "well/fine",
+      "english_translation": "well/fine",
+      "explanation": "Je vais bien, merci."
+    },
+    {
+      "target_word": "mauvais(e)",
+      "native_translation": "bad/poor",
+      "english_translation": "bad/poor",
+      "explanation": "Je me sens mauvais(e)."
+    },
+    {
+      "target_word": "médical(e)",
+      "native_translation": "medical",
+      "english_translation": "medical",
+      "explanation": "C'est un problème médical."
+    },
+    {
+      "target_word": "le rendez-vous",
+      "native_translation": "appointment",
+      "english_translation": "appointment",
+      "explanation": "J'ai un rendez-vous chez le médecin."
+    },
+    {
+      "target_word": "l'assurance maladie",
+      "native_translation": "health insurance",
+      "english_translation": "health insurance",
+      "explanation": "L'assurance maladie couvre les frais médicaux."
+    },
+    {
+      "target_word": "la carte vitale",
+      "native_translation": "health insurance card",
+      "english_translation": "health insurance card",
+      "explanation": "Il faut présenter sa carte vitale au médecin."
+    },
+    {
+      "target_word": "le numéro de sécurité sociale",
+      "native_translation": "social security number",
+      "english_translation": "social security number",
+      "explanation": "Le numéro de sécurité sociale est nécessaire pour les démarches administratives."
+    },
+    {
+      "target_word": "le formulaire",
+      "native_translation": "form",
+      "english_translation": "form",
+      "explanation": "Il faut remplir le formulaire d'inscription."
+    },
+    {
+      "target_word": "l'hôpital public",
+      "native_translation": "public hospital",
+      "english_translation": "public hospital",
+      "explanation": "L'hôpital public est financé par l'état."
+    },
+    {
+      "target_word": "l'hôpital privé",
+      "native_translation": "private hospital",
+      "english_translation": "private hospital",
+      "explanation": "L'hôpital privé est un établissement de soins privé."
+    },
+    {
+      "target_word": "le service",
+      "native_translation": "department",
+      "english_translation": "department",
+      "explanation": "Le service de cardiologie est au troisième étage."
+    },
+    {
+      "target_word": "le numéro de téléphone",
+      "native_translation": "phone number",
+      "english_translation": "phone number",
+      "explanation": "Vous pouvez me joindre à ce numéro de téléphone."
+    },
+    {
+      "target_word": "l'adresse",
+      "native_translation": "address",
+      "english_translation": "address",
+      "explanation": "Voici mon adresse."
+    },
+    {
+      "target_word": "le dossier médical",
+      "native_translation": "medical file",
+      "english_translation": "medical file",
+      "explanation": "Le dossier médical contient toutes les informations médicales d'un patient."
+    }
+  ]
+}
+```

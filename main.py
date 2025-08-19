@@ -26,6 +26,7 @@ from crewai_tools import SerperDevTool, ScrapeWebsiteTool
 import streamlit.components.v1 as components
 from openai import api_key
 import crew_utis
+from general import render_swimming_page, render_fitness_page, render_driving_license_page
 from user_guid import render_user_guide_page
 from stock_health import  render_health_support_page, render_stock_analyzer_page
 # This file holds global configurations and variables for your app.
@@ -941,11 +942,11 @@ def render_podcast_studio_page():
                     speaker_configs = [gen.types.SpeakerVoiceConfig(speaker=s1_name, voice_config=gen.types.VoiceConfig(prebuilt_voice_config=gen.types.PrebuiltVoiceConfig(voice_name=speaker1_voice))), gen.types.SpeakerVoiceConfig(speaker=s2_name, voice_config=gen.types.VoiceConfig(prebuilt_voice_config=gen.types.PrebuiltVoiceConfig(voice_name=speaker2_voice)))]
                     st.session_state['audiodata_prod'] = PodcastStudioCrew.generate_audio(tts_model, st.session_state.transcript_editor, speaker_configs)
 
-        if st.session_state.audiodata_prod:
-            st.success("Audio generated!")
-            wav_bytes = pcm_to_wav(st.session_state.get("audiodata_prod"), channels=1, sample_width=2, sample_rate=24000)
-            st.audio(wav_bytes, format='audio/wav')
-            st.download_button("⬇️ Download Podcast", wav_bytes, f"{st.session_state.podcast_topic.replace(' ', '_')}.wav")
+    if st.session_state.get('audiodata_prod') and  st.session_state.get('podcast_transcript') :
+        st.success("Audio generated!")
+        wav_bytes = pcm_to_wav(st.session_state.get("audiodata_prod"), channels=1, sample_width=2, sample_rate=24000)
+        st.audio(wav_bytes, format='audio/wav')
+        st.download_button("⬇️ Download Podcast", wav_bytes, f"{st.session_state.podcast_topic.replace(' ', '_')}.wav")
 
 def render_sermon_page():
     st.title("📖 AI Sermon Generator Crew")
@@ -1519,7 +1520,7 @@ def render_audio_suite_page():
                     with st.spinner("Generating audio..."):
                         st.session_state['audio_data']= AudioSuiteCrew.generate_audio(selected_tts_model,  st.session_state['text_for_audio'], selected_voice)
 
-        if st.session_state['audio_data']:
+        if st.session_state.get('audio_data') and st.session_state.get('text_for_audio') :
             st.success("Audio Generated!")
             wav_bytes = pcm_to_wav(st.session_state.get('audio_data'), channels=1, sample_width=2, sample_rate=24000)
             st.audio(wav_bytes, format='audio/wav')
@@ -1615,7 +1616,10 @@ def main():
         "Book Writing Studio": "📚", "Bible Book Study": "🌍", "Bible Topic Study": "🙏", "Newsroom HQ": "📰", 
         "Viral Video Series Studio": "🎬", "Single Video Studio": "📹", "AI Podcast Studio": "🎙️", "AI Chef Studio": "🍳", 
         "AI Language Academy": "🗣️", "AI Tutor (Grades 1-12)": "🎓", "University AI Professor": "🧑‍🏫", "AI Audio Suite": "🎧",
-        "Street Evangelism": "✝️","AI Stock Analysis Studio":"📈", "AI Health & Wellness Suite":"❤️‍🩹"
+        "Street Evangelism": "✝️","AI Stock Analysis Studio":"📈", "AI Health & Wellness Suite":"❤️‍🩹",
+        "AI Swimming Coach": "🏊",
+        "AI Fitness Trainer": "🏋️",
+        "AI Driving License Guide": "🚗"
     }
     selection = st.sidebar.radio("Go to", list(page_options.keys()))
     
@@ -1626,7 +1630,10 @@ def main():
         "Newsroom HQ": ['gemini_key', 'serper_key'], "Viral Video Series Studio": ['gemini_key'], "Single Video Studio": ['gemini_key'],
         "AI Podcast Studio": ['gemini_key'], "AI Chef Studio": ['gemini_key'], "AI Language Academy": ['gemini_key'],
         "AI Tutor (Grades 1-12)": ['gemini_key'], "University AI Professor": ['gemini_key'], "AI Audio Suite": ['gemini_key'],
-        "Street Evangelism": ['gemini_key', 'serper_key']
+        "Street Evangelism": ['gemini_key', 'serper_key'],
+        "AI Swimming Coach": ['gemini_key', 'serper_key'],
+        "AI Fitness Trainer": ['gemini_key', 'serper_key'],
+        "AI Driving License Guide": ['gemini_key', 'serper_key']
     }
 
     if selection not in ["Home", "User Guide & Help"] and not all(st.session_state.get(key) for key in keys_needed.get(selection, [])):
@@ -1684,6 +1691,12 @@ def main():
     elif selection == "AI Stock Analysis Studio":
         render_stock_analyzer_page()
     elif selection == "AI Health & Wellness Suite": render_health_support_page()
+    elif selection == "AI Swimming Coach":
+        render_swimming_page()
+    elif selection == "AI Fitness Trainer":
+        render_fitness_page()
+    elif selection == "AI Driving License Guide":
+        render_driving_license_page()
 
 if __name__ == "__main__":
     main()
