@@ -250,8 +250,17 @@ class StreetEvangelismCrew:
 def render_language_academy_page():
     st.title("🗣️ AI Language Academy")
     st.markdown("Your interactive hub for mastering a new language.")
+    AVAILABLE_MODELS = get_available_models(st.session_state.get('gemini_key'))
+    LANGUAGES = ("English", "German", "French", "Swahili", "Italian", "Spanish", "Portuguese")
+    SCOPE_OPTIONS = ["Home", "Work", "University", "School", "Hospital", "Restaurant", "Travel", "Health"]
 
-    tab1, tab2, tab3,tab4 = st.tabs(["**Study Guide**", "**Practice & Exams**", "**Listening Practice**","**Vocabulary Builder**"])
+
+     tab1, tab2, tab3, tab4 = st.tabs([
+        "**🎓 Study Guide**",
+        "**✍️ Practice & Exams**",
+        "**🎧 Listening Practice**",
+        "**📚 Vocabulary Builder**"
+    ])
 
     with tab1:
         st.header("Generate a Comprehensive Study Guide")
@@ -364,54 +373,56 @@ def render_language_academy_page():
             render_download_buttons(st.session_state.listening_material, f"{target_language_listen}_{level_listen}_listening_practice")
 
 
+ # ========================= TAB 4: Vocabulary Builder =========================
     with tab4:
-        st.header("Build Your Thematic Vocabulary List ")
+        st.header("Build Your Thematic Vocabulary List")
         if 'vocabulary_list' not in st.session_state: st.session_state.vocabulary_list = None
-        available_models = get_available_models(st.session_state.get('gemini_key'))
-        LANGUAGES = ("English", "German", "French", "Swahili", "Italian", "Spanish", "Portuguese")
 
-        scope = ["Home", "Work", "University", "School", "Hospital", "Restaurant", "Hobbies", "Sport", "Health", "Fitness",
-                 "Holiday", "Travel", "Beach", "?"]
         with st.form("vocabulary_form"):
             col1, col2 = st.columns(2)
-            native_language_voc = col1.text_input("Your Language", "English", key="voc_native")
-            target_language_voc = col2.text_input("Language to Learn", "French", key="voc_target")
-
+            native_language_voc = col1.selectbox("Your Language", LANGUAGES, index=0, key="voc_native")
+            target_language_voc = col2.selectbox("Language to Learn", LANGUAGES, index=2, key="voc_target")
             col3, col4 = st.columns(2)
             level_voc = col3.selectbox("Select Level (CEFR)", ["A1", "A2", "B1", "B2", "C1", "C2"], key="voc_level")
-            scope_voc = col4.text_input("Enter scope", "Hospital")
+            scope_voc = col4.selectbox("Enter scope", SCOPE_OPTIONS, index=4, key="voc_scope")
+            selected_model_voc = st.selectbox("Choose AI Model", AVAILABLE_MODELS, key="voc_model")
 
-            selected_model_voc = st.selectbox("Choose AI Model", available_models,
-                                              key="voc_model") if available_models else None
-
-            if st.form_submit_button("Generate Vocabularies", use_container_width=True):
+            if st.form_submit_button("Generate Vocabulary List", use_container_width=True, type="primary"):
                 if not all([native_language_voc, target_language_voc, selected_model_voc, level_voc, scope_voc]):
                     st.error("Please fill all fields and select a model.")
-
                 else:
                     with st.spinner(f"The AI linguistics team is compiling your vocabulary list for '{scope_voc}'..."):
-                        crew = VocabularyCrew(selected_model_voc, native_language_voc, target_language_voc, level_voc,
-                                              scope_voc)
+                        crew = VocabularyCrew(selected_model_voc, native_language_voc, target_language_voc, level_voc, scope_voc)
                         st.session_state.vocabulary_list = crew.run()
 
         if st.session_state.get('vocabulary_list'):
             st.markdown("---")
             st.subheader(f"Your {target_language_voc} Vocabulary for '{scope_voc}' ({level_voc})")
-
             vocab_data = st.session_state.vocabulary_list.get('vocabulary', [])
-            if vocab_data:
-
+            
+            # --- LOGIC FIX: Check data structure before creating DataFrame ---
+            if vocab_data and isinstance(vocab_data, list) and all(isinstance(i, list) for i in vocab_data):
                 df = pd.DataFrame(vocab_data)
-                if f"{native_language_voc}"=='English':
-                    df.columns = [f"{target_language_voc} Word", f"{native_language_voc} Translation", "English Translation_1",
-                                  f"Explanation in {target_language_voc}"]
-                    st.dataframe(df)
+                
+                # --- LOGIC FIX: Dynamically and robustly assign column names ---
+                # This now works for any language combination.
+                expected_columns = [
+                    f"{target_language_voc} Word",
+                    f"{native_language_voc} Translation",
+                    f"Explanation in {target_language_voc}"
+                ]
+                
+                # Handle cases where AI gives more or fewer columns than expected
+                actual_columns = len(df.columns)
+                df.columns = expected_columns[:actual_columns]
 
-                    markdown_for_download = df.to_markdown(index=False)
-                    render_download_buttons(markdown_for_download, f"{target_language_voc}_{scope_voc}_vocabulary")
+                st.dataframe(df)
+                markdown_for_download = df.to_markdown(index=False)
+                render_download_buttons(markdown_for_download, f"{target_language_voc}_{scope_voc}_vocabulary")
             else:
                 st.warning("Could not display the vocabulary list in a table. Please check the raw output.")
                 st.json(st.session_state.vocabulary_list)
+
 def render_street_evangelism_page():
     st.title("✝️ Street Evangelism & Apologetics")
     st.markdown("Equipping you to fulfill the Great Commission (Matthew 28:17-20) with grace and truth.")
