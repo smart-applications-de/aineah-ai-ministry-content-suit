@@ -401,24 +401,16 @@ def render_language_academy_page():
             vocab_data = st.session_state.vocabulary_list.get('vocabulary', [])
             
             # --- LOGIC FIX: Check data structure before creating DataFrame ---
-            if vocab_data and isinstance(vocab_data, list) and all(isinstance(i, list) for i in vocab_data):
+            if vocab_data:
                 df = pd.DataFrame(vocab_data)
-                
-                # --- LOGIC FIX: Dynamically and robustly assign column names ---
-                # This now works for any language combination.
-                expected_columns = [
-                    f"{target_language_voc} Word",
-                    f"{native_language_voc} Translation",
-                    f"Explanation in {target_language_voc}"
-                ]
-                
-                # Handle cases where AI gives more or fewer columns than expected
-                actual_columns = len(df.columns)
-                df.columns = expected_columns[:actual_columns]
+                if f"{native_language_voc}"=='English':
+                    df.columns = [f"{target_language_voc} Word", f"{native_language_voc} Translation", "English Translation_1",
+                                  f"Explanation in {target_language_voc}"]
+                    st.dataframe(df)
 
-                st.dataframe(df)
-                markdown_for_download = df.to_markdown(index=False)
-                render_download_buttons(markdown_for_download, f"{target_language_voc}_{scope_voc}_vocabulary")
+                    markdown_for_download = df.to_markdown(index=False)
+                    render_download_buttons(markdown_for_download, f"{target_language_voc}_{scope_voc}_vocabulary")
+ 
             else:
                 st.warning("Could not display the vocabulary list in a table. Please check the raw output.")
                 st.json(st.session_state.vocabulary_list)
