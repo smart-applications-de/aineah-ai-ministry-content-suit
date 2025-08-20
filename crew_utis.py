@@ -365,7 +365,7 @@ def render_language_academy_page():
 
 
     with tab4:
-        st.header("Build Your Thematic Vocabulary List")
+        st.header("Build Your Thematic Vocabulary List ")
         if 'vocabulary_list' not in st.session_state: st.session_state.vocabulary_list = None
         available_models = get_available_models(st.session_state.get('gemini_key'))
         LANGUAGES = ("English", "German", "French", "Swahili", "Italian", "Spanish", "Portuguese")
