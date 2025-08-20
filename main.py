@@ -816,40 +816,6 @@ class ImageEditingCrew:
 ## 3. Page Rendering Functions
 # ==============================================================================
 
-def render_language_academy_page():
-    st.title("🗣️ AI Language Academy")
-    st.markdown("Generate a full curriculum, then study lesson by lesson.")
-    if 'course_outline' not in st.session_state: st.session_state.course_outline = None
-    if 'lesson_content' not in st.session_state: st.session_state.lesson_content = None
-    available_models = get_available_models(st.session_state.get('gemini_key'))
-    LANGUAGES = gemini_supported_languages
-
-    with st.form("curriculum_form"):
-        st.header("Step 1: Design Your Course")
-        col1, col2 = st.columns(2); native_language = col1.text_input("Your Language", "English"); target_language = col2.text_input("Language to Learn", "French")
-        col3, col4 = st.columns(2); level = col3.selectbox("Select Level (CEFR)", ["A1", "A2", "B1", "B2", "C1", "C2"]); selected_model = col4.selectbox("Choose AI Model", available_models) if available_models else None
-        if st.form_submit_button("Generate Course Outline", use_container_width=True):
-            if not all([native_language, target_language, selected_model]): st.error("Please fill all fields.")
-            else:
-                with st.spinner("AI Director is designing your learning path..."):
-                    st.session_state.update(lang_model=selected_model, native_lang=native_language, target_lang=target_language, lesson_content=None)
-                    crew = LanguageAcademyCrew(selected_model, native_language, target_language, level)
-                    st.session_state.course_outline = crew.run_curriculum_crew()
-
-    if st.session_state.get('course_outline'):
-        st.markdown("---"); st.header("Step 2: Choose a Lesson to Study")
-        outline = st.session_state.course_outline; lesson_options = outline.get('lessons', []) + ["Final Exam Preparation"]
-        selected_lesson = st.selectbox("Select a lesson", options=lesson_options)
-        if st.button(f"Generate Content for: {selected_lesson}", use_container_width=True):
-            with st.spinner(f"AI teaching crew is preparing '{selected_lesson}'..."):
-                crew = LanguageAcademyCrew(st.session_state.lang_model, st.session_state.native_lang, st.session_state.target_lang, level)
-                if selected_lesson == "Final Exam Preparation":
-                    exam_plan = outline.get('final_exam', {}); st.session_state.lesson_content = f"## Final Exam Guide\n\n**Description:** {exam_plan.get('description', 'N/A')}\n\n**Structure:** {exam_plan.get('structure', 'N/A')}\n\n**Tips:** {exam_plan.get('preparation_tips', 'N/A')}"
-                else: st.session_state.lesson_content = crew.run_lesson_crew(selected_lesson)
-    
-    if st.session_state.get('lesson_content'):
-        st.markdown("---"); st.header(f"Study Material: {selected_lesson}"); st.markdown(st.session_state.lesson_content)
-        render_download_buttons(st.session_state.lesson_content, "language_lesson")
 
 def render_book_page():
     st.title("📚 AI Book Writing Studio")

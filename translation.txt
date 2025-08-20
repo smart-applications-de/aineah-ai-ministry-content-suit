@@ -1,0 +1,109 @@
+Der Arzt untersucht die Patienten und verschreibt Behandlungen.
+Die Krankenschwester assistiert dem Arzt und kümmert sich um die Patienten.
+Der Patient ist die Person, die vom Arzt behandelt wird.
+Der Chirurg führt chirurgische Operationen durch.
+Der Facharzt ist ein Arzt, der Experte auf einem bestimmten Gebiet ist.
+Der Empfangschef begrüßt die Patienten im Krankenhaus.
+Der Apotheker bereitet und gibt die Medikamente aus.
+Der Zahnarzt behandelt die Zähne.
+Der Physiotherapeut unterstützt bei der körperlichen Rehabilitation.
+Der Logopäde behandelt Sprachstörungen.
+Der Radiologe wertet die Röntgenbilder aus.
+Der Rettungsassistent transportiert Patienten in Notfällen.
+Die Familie besucht oft die hospitalisierten Patienten.
+Der Besucher besucht einen Patienten im Krankenhaus.
+Das Krankenhaus ist ein Ort, an dem Kranke behandelt werden.
+Die Patienten warten in der Wartezimmer auf ihren Termin.
+Die Anmeldung ist der Ort, an dem man sich im Krankenhaus registriert.
+Der Arzt arbeitet in seinem Büro.
+Der Patient ruht sich in seinem Krankenzimmer aus.
+Der Patient schläft im Bett.
+Die Toilette ist das WC.
+Das Badezimmer ist der Raum, in dem man sich wäscht.
+Der Flur verbindet die verschiedenen Räume des Krankenhauses.
+Der Aufzug ermöglicht das Auf- und Absteigen der Stockwerke.
+Die Notaufnahme nimmt Patienten in kritischen Situationen auf.
+Der Operationssaal ist der Raum, in dem die Operationen stattfinden.
+Die Krankenhausapotheke gibt die Medikamente an die Patienten aus.
+Das Labor führt medizinische Analysen durch.
+Die Radiologie macht bildgebende medizinische Untersuchungen.
+Die Intensivstation nimmt die schwerstkranken Patienten auf.
+Die medizinische Untersuchung ermöglicht die Diagnose der Krankheit.
+Die Konsultation ist der Termin beim Arzt.
+Die Operation ist ein chirurgischer Eingriff.
+Die Injektion besteht darin, ein Medikament intravenös zu verabreichen.
+Die Blutentnahme ermöglicht die Analyse des Blutes des Patienten.
+Die Röntgenaufnahme ist ein Bild der Knochen und Organe.
+Die Ultraschalluntersuchung verwendet Ultraschall, um die Organe darzustellen.
+Die MRT verwendet ein Magnetfeld, um Bilder des Körpers zu erzeugen.
+Der CT-Scan verwendet Röntgenstrahlen, um Bilder des Körpers zu erzeugen.
+Medikamente lindern Schmerzen und behandeln Krankheiten.
+Die Behandlung zielt darauf ab, die Krankheit zu heilen.
+Das Rezept gibt die einzunehmenden Medikamente an.
+Der Verband schützt eine Wunde.
+Die Impfung schützt vor bestimmten Krankheiten.
+Die Rehabilitation ermöglicht die Genesung nach einer Verletzung.
+Die Physiotherapie verwendet Übungen zur Verbesserung der Beweglichkeit.
+Die Therapie zielt darauf ab, den Gesundheitszustand des Patienten zu verbessern.
+Der Arzt verwendet das Stethoskop, um Herz und Lunge abzuhören.
+Das Thermometer misst die Körpertemperatur.
+Das Blutdruckmessgerät misst den Blutdruck.
+Die Spritze dient zum Injizieren von Medikamenten.
+Der Verband hält eine Wunde an Ort und Stelle.
+Der Pflaster ist ein Klebeverband.
+Tabletten sind Medikamente in Tablettenform.
+Kapseln sind Medikamente in einer Gelatinehülle.
+Sirup ist ein flüssiges und süßes Medikament.
+Creme ist eine weiche Zubereitung für die Haut.
+Salbe ist eine fetthaltige Zubereitung für die Haut.
+Der Fläschchen enthält eine Flüssigkeit.
+Die Tube enthält eine Creme oder Salbe.
+Schmerz ist ein unangenehmes Gefühl.
+Fieber ist eine Erhöhung der Körpertemperatur.
+Husten ist ein plötzliches Ausstoßen von Luft aus der Lunge.
+Erkältung ist eine Infektion der oberen Atemwege.
+Grippe ist eine Virusinfektion.
+Eine Verletzung ist eine Schädigung der Haut oder des Gewebes.
+Ein Bruch ist ein Knochenbruch.
+Eine Infektion ist eine Invasion von Mikroorganismen.
+Eine Allergie ist eine übermäßige Reaktion des Immunsystems.
+Eine Krankheit ist ein veränderter Gesundheitszustand.
+Kopfschmerzen sind Schmerzen im Kopf.
+Bauchschmerzen sind Schmerzen im Magen.
+Müdigkeit ist ein Gefühl der Erschöpfung.
+Übelkeit ist ein Gefühl des Unbehagens.
+Erbrechen ist das Ausstoßen von Nahrung aus dem Magen.
+Ich muss einen Arzt aufsuchen.
+Der Arzt wird mich untersuchen.
+Diese Wunde muss behandelt werden.
+Der Chirurg wird mich operieren.
+Die Krankenschwester wird mir eine Spritze geben.
+Der Arzt wird mir Medikamente verschreiben.
+Ich muss meine Medikamente nehmen.
+Man muss Creme auf die Wunde auftragen.
+Ich hoffe, ich werde schnell gesund.
+Es braucht Zeit, um sich nach einer Operation zu erholen.
+Ich leide unter starken Schmerzen.
+Rufen Sie sofort den Notarzt.
+Ich muss auf meinen Termin warten.
+Gehen Sie in das Arztzimmer.
+Ich kann jetzt aus dem Krankenhaus entlassen werden.
+Ich bin heute krank.
+Er ist am Bein verletzt.
+Sie ist schwer krank.
+Das ist ein Notfall.
+Das ist eine schwere Verletzung.
+Das sind leichte Schmerzen.
+Ich bin gesund.
+Ich bin ungesund.
+Ich habe starke Schmerzen.
+Ich fühle mich schwach.
+Er ist krank.
+Ich brauche Hilfe.
+Es ist ein Notfall.
+Rufen Sie einen Krankenwagen.
+Ich habe eine Krankenversicherung.
+Hier ist mein Rezept.
+Meine Krankenakte ist vollständig.
+Ich habe einen Arzttermin.
+Sein Krankenhausaufenthalt dauerte eine Woche.
