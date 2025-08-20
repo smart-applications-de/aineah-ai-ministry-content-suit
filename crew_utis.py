@@ -407,10 +407,14 @@ def render_language_academy_page():
                 if f"{native_language_voc}"=='English':
                     df.columns = [f"{target_language_voc} Word", f"{native_language_voc} Translation", "English Translation_1",
                                   f"Explanation in {target_language_voc}"]
-                    st.dataframe(df)
+                else:
+                     df.columns = [f"{target_language_voc} Word", f"{native_language_voc} Translation", "English Translation",
+                                  f"Explanation in {target_language_voc}"]
 
-                    markdown_for_download = df.to_markdown(index=False)
-                    render_download_buttons(markdown_for_download, f"{target_language_voc}_{scope_voc}_vocabulary")
+                st.dataframe(df)
+
+                markdown_for_download = df.to_markdown(index=False)
+                render_download_buttons(markdown_for_download, f"{target_language_voc}_{scope_voc}_vocabulary")
  
             else:
                 st.warning("Could not display the vocabulary list in a table. Please check the raw output.")
