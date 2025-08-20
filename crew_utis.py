@@ -19,7 +19,7 @@ from crewai import Agent, Task, Crew, Process, LLM
 from crewai_tools import SerperDevTool, ScrapeWebsiteTool
 import streamlit.components.v1 as components
 import pandas as pd
-from main_v2 import  get_available_models, render_download_buttons
+from main_v2 import  get_available_models, render_download_buttons, LANGUAGES
 
 def parse_json_from_text(text):
     """Safely extracts a JSON object from a string."""
@@ -251,8 +251,9 @@ def render_language_academy_page():
     st.title("🗣️ AI Language Academy")
     st.markdown("Your interactive hub for mastering a new language.")
     AVAILABLE_MODELS = get_available_models(st.session_state.get('gemini_key'))
-    LANGUAGES = ("English", "German", "French", "Swahili", "Italian", "Spanish", "Portuguese")
-    SCOPE_OPTIONS = ["Home", "Work", "University", "School", "Hospital", "Restaurant", "Travel", "Health","Family","Church","Bible","Salvation","Jesus","Greetings","Food", "Animals","Universe","Music","News","Politic","Science"]
+    #LANGUAGES = ("English", "German", "French", "Swahili", "Italian", "Spanish", "Portuguese")
+    SCOPE_OPTIONS = ["Home", "Work", "University", "School", "Hospital", "Restaurant", "Travel", "Health","Family","Church","Bible","Salvation",
+                     "Jesus","Greetings","Food", "Animals","Universe","Music","News","Politic","Science","Grammar","phrases","proverbs","idoms","Birds","Professions"]
 
 
     tab1, tab2, tab3, tab4 = st.tabs([
@@ -424,7 +425,7 @@ def render_street_evangelism_page():
     with tab1:
         st.header("Prepare Answers for Common Questions")
         available_models = get_available_models(st.session_state.get('gemini_key'))
-        LANGUAGES = ("English", "German", "French", "Swahili", "Italian", "Spanish", "Portuguese")
+       # LANGUAGES = ("English", "German", "French", "Swahili", "Italian", "Spanish", "Portuguese")
         RELIGIONS = ["Atheist", "Muslim", "Hindu", "Buddhist", "Agnostic", "Jewish", "Skeptic", "New Age", "Secular Humanist"]
 
         with st.form("evangelism_form"):
