@@ -267,7 +267,7 @@ def render_language_academy_page():
         st.header("Generate a Comprehensive Study Guide")
         if 'language_guide' not in st.session_state: st.session_state.language_guide = None
         available_models = get_available_models(st.session_state.get('gemini_key'))
-        LANGUAGES = ("English", "German", "French", "Swahili", "Italian", "Spanish", "Portuguese")
+        #LANGUAGES = ("English", "German", "French", "Swahili", "Italian", "Spanish", "Portuguese")
 
         with st.form("guide_form"):
             col1, col2 = st.columns(2)
@@ -451,7 +451,7 @@ def render_street_evangelism_page():
     with tab2:
         st.header("Get a Practical Guide for Evangelism")
         available_models = get_available_models(st.session_state.get('gemini_key'))
-        LANGUAGES = ("English", "German", "French", "Swahili", "Italian", "Spanish", "Portuguese")
+        #LANGUAGES = ("English", "German", "French", "Swahili", "Italian", "Spanish", "Portuguese")
 
         with st.form("guide_form"):
             language = st.selectbox("Language for the Guide:", LANGUAGES, key="guide_lang")
@@ -475,7 +475,7 @@ def render_street_evangelism_page():
     with tab3:
         st.header("Top 15 Frequently Asked Questions with Answers")
         available_models = get_available_models(st.session_state.get('gemini_key'))
-        LANGUAGES = ("English", "German", "French", "Swahili", "Italian", "Spanish", "Portuguese")
+       # LANGUAGES = ("English", "German", "French", "Swahili", "Italian", "Spanish", "Portuguese")
 
         with st.form("faq_form"):
             language = st.selectbox("Language for FAQs:", LANGUAGES, key="faq_lang")
