@@ -172,7 +172,7 @@ class LanguageListeningCrew:
 class VocabularyCrew:
     def __init__(self, model_name, native_language, target_language, level, scope):
         os.environ["GOOGLE_API_KEY"] = st.session_state.get('gemini_key', '')
-        self.llm = LLM(model=model_name, temperature=0.7, api_key=os.environ["GOOGLE_API_KEY"])
+        self.llm = LLM(model=model_name, temperature=0.3, api_key=os.environ["GOOGLE_API_KEY"])
         self.native_language = native_language
         self.target_language = target_language
         self.level = level
@@ -180,13 +180,14 @@ class VocabularyCrew:
 
     def run(self):
         agents = [
-            Agent(role='Expert Lexicographer', goal=f"Generate a list of at least 200  essential vocabulary words in {self.target_language} related to '{self.scope}' for a {self.level} learner.", backstory="You are a lexicographer who specializes in creating CEFR-leveled thematic vocabulary lists for language learners. Your word choices are always practical and relevant.", llm=self.llm, verbose=True),
+            Agent(role='Expert Lexicographer', goal=f"Generate a list of at least 150  essential vocabulary words in {self.target_language} related to '{self.scope}' for a {self.level} learner.", backstory="You are a lexicographer who specializes in creating CEFR-leveled thematic vocabulary lists for language learners. Your word choices are always practical and relevant.", llm=self.llm, verbose=True),
             Agent(role='Professional Translator', goal=f"Translate the list of {self.target_language} words into {self.native_language} and English.", backstory=f"You are a professional translator fluent in {self.target_language}, {self.native_language}, and English. You ensure accurate and contextually appropriate translations.", llm=self.llm, verbose=True),
             Agent(role='Applied Linguist & Editor', goal=f"For each word, provide a simple explanation or an example sentence in {self.target_language}. Then, compile all information into a structured JSON object.", backstory="You are a linguist who excels at explaining vocabulary in a simple, contextual way for learners. You are also meticulous at structuring data for applications.", llm=self.llm, verbose=True)
         ]
-        task_generate_words = Task(description=f"Create a list of at least 200 vocabulary words in {self.target_language} for a {self.level} learner, focusing on the topic of '{self.scope}'.", agent=agents[0], expected_output="A clean list of 100+ words in {self.target_language}.")
+        task_generate_words = Task(description=f"Create a list of at least 150 vocabulary words in {self.target_language} for a {self.level} learner, focusing on the topic of '{self.scope}'.", agent=agents[0], expected_output="A clean list of 100+ words in {self.target_language}.")
         task_translate = Task(description=f"Translate the provided list of {self.target_language} words into two columns: one for {self.native_language} and one for English.", agent=agents[1], context=[task_generate_words], expected_output="A three-column list of words: Target Language, Native Language, English.")
-        task_compile = Task(description=f"For each word in the translated list, add a fourth column with a simple explanation or example sentence in {self.target_language}. Finally, format the entire result into a single JSON object. The JSON must have a key 'vocabulary' which is an array of objects. Each object must have four keys: 'target_word', 'native_translation', 'english_translation', and 'explanation'. The final output MUST be ONLY the raw JSON object, without any markdown formatting.", agent=agents[2], context=[task_translate], expected_output="A single JSON object containing the structured vocabulary list.", output_file="vocabulary_list.json")
+        task_compile = Task(description=f"For each word in the translated list, add a fourth column with a simple explanation or example sentence in {self.target_language}. Finally, format the entire result into a single JSON object. The JSON must have a key 'vocabulary' which is an array of objects. Each object must have four keys: 'target_word', 'native_translation', 'english_translation', and 'explanation'. The final output MUST be ONLY the raw JSON object, without any markdown formatting.
+        You MUST always give full list without ... or etc", agent=agents[2], context=[task_translate], expected_output="A single JSON object containing the structured vocabulary list.", output_file="vocabulary_list.json")
 
         crew = Crew(agents=agents, tasks=[task_generate_words, task_translate, task_compile], process=Process.sequential, verbose=True)
         crew.kickoff()
