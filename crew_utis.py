@@ -255,7 +255,7 @@ def render_language_academy_page():
     SCOPE_OPTIONS = ["Home", "Work", "University", "School", "Hospital", "Restaurant", "Travel", "Health"]
 
 
-     tab1, tab2, tab3, tab4 = st.tabs([
+    tab1, tab2, tab3, tab4 = st.tabs([
         "**🎓 Study Guide**",
         "**✍️ Practice & Exams**",
         "**🎧 Listening Practice**",
