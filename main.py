@@ -271,40 +271,7 @@ class FlyerCrew:
         except Exception as e:
             st.error(f"Image generation failed: {e}"); return None
 
-class LanguageAcademyCrew:
-    def __init__(self, model_name, native_language, target_language, level):
-        os.environ["GOOGLE_API_KEY"] = st.session_state.get('gemini_key', '')
-        self.llm = LLM(model=model_name, temperature=0.7, api_key=os.environ["GOOGLE_API_KEY"])
-        self.native_language = native_language; self.target_language = target_language; self.level = level
 
-    def run_curriculum_crew(self):
-        agent = Agent(role='CEFR Curriculum Director', goal=f"Design a course outline for a {self.native_language} speaker learning {self.target_language} at {self.level}.", backstory="A lead curriculum designer for international language certification bodies.", llm=self.llm, verbose=True)
-        task = Task(description=f"Generate a JSON with 'lessons' and 'final_exam' keys. For A1, first lesson must be 'The Alphabet & Core Pronunciation'.", agent=agent, expected_output="A single, clean JSON object.Without formatted ```json and ```. You MUST REMOVE IT", output_file="curriculum.json")
-        crew = Crew(agents=[agent], tasks=[task]).kickoff()
-        with open("curriculum.json", "r", encoding="utf-8") as f:
-            return parse_json_from_text(f.read())
-
-    def run_lesson_crew(self, lesson_title):
-        if lesson_title == "The Alphabet & Core Pronunciation":
-            agent = Agent(role='Phonetics Specialist', goal=f"Create a guide to the {self.target_language} alphabet.", backstory=f"A linguist specializing in {self.target_language} phonology.", llm=self.llm, verbose=True)
-            task = Task(description=f"Generate a guide to the {self.target_language} alphabet for a {self.native_language} speaker.", agent=agent, expected_output="A detailed markdown document with an alphabet table and pronunciation rules.", output_file="lesson.md")
-            agents, tasks = [agent], [task]
-        else:
-            agents = [
-                Agent(role='Grammar Professor', goal=f"Explain grammar for '{lesson_title}'.", backstory=f"A university professor known for making complex topics simple.", llm=self.llm, verbose=True),
-                Agent(role='Vocabulary Linguist', goal=f"Create a vocabulary list for '{lesson_title}'.", backstory="A lexicographer who creates practical, thematic vocabulary lists.", llm=self.llm, verbose=True),
-                Agent(role='Exercise Designer', goal=f"Create exercises for '{lesson_title}'.", backstory="An expert in crafting effective, engaging exercises for language textbooks.", llm=self.llm, verbose=True)
-            ]
-            tasks = [
-                Task(description="Write a clear grammar explanation with examples.", agent=agents[0], expected_output="A markdown section titled 'Grammar Focus'."),
-                Task(description=f"Create a vocabulary table with translations to {self.native_language} and English.", agent=agents[1], expected_output="A markdown table with three columns."),
-                Task(description="Create 5-7 practice exercises and a separate answer key.", agent=agents[2], expected_output="A markdown section titled 'Practice Exercises' and a separate 'Answer Key' section.", output_file="lesson.md")
-            ]
-        
-        crew = Crew(agents=agents, tasks=tasks, process=Process.sequential, verbose=True)
-        crew.kickoff()
-        with open("lesson.md", "r", encoding="utf-8") as f:
-            return f.read()
 
 class BookStudioCrew:
     def __init__(self, model_name, topic, language):
