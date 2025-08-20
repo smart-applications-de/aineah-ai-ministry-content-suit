@@ -180,7 +180,7 @@ class VocabularyCrew:
 
     def run(self):
         agents = [
-            Agent(role='Expert Lexicographer', goal=f"Generate a list of at least 250  essential vocabulary words in {self.target_language} related to '{self.scope}' for a {self.level} learner.", backstory="You are a lexicographer who specializes in creating CEFR-leveled thematic vocabulary lists for language learners. Your word choices are always practical and relevant.", llm=self.llm, verbose=True),
+            Agent(role='Expert Lexicographer', goal=f"Generate a list of at least 200  essential vocabulary words in {self.target_language} related to '{self.scope}' for a {self.level} learner.", backstory="You are a lexicographer who specializes in creating CEFR-leveled thematic vocabulary lists for language learners. Your word choices are always practical and relevant.", llm=self.llm, verbose=True),
             Agent(role='Professional Translator', goal=f"Translate the list of {self.target_language} words into {self.native_language} and English.", backstory=f"You are a professional translator fluent in {self.target_language}, {self.native_language}, and English. You ensure accurate and contextually appropriate translations.", llm=self.llm, verbose=True),
             Agent(role='Applied Linguist & Editor', goal=f"For each word, provide a simple explanation or an example sentence in {self.target_language}. Then, compile all information into a structured JSON object.", backstory="You are a linguist who excels at explaining vocabulary in a simple, contextual way for learners. You are also meticulous at structuring data for applications.", llm=self.llm, verbose=True)
         ]
