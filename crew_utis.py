@@ -252,7 +252,7 @@ def render_language_academy_page():
     st.markdown("Your interactive hub for mastering a new language.")
     AVAILABLE_MODELS = get_available_models(st.session_state.get('gemini_key'))
     LANGUAGES = ("English", "German", "French", "Swahili", "Italian", "Spanish", "Portuguese")
-    SCOPE_OPTIONS = ["Home", "Work", "University", "School", "Hospital", "Restaurant", "Travel", "Health"]
+    SCOPE_OPTIONS = ["Home", "Work", "University", "School", "Hospital", "Restaurant", "Travel", "Health","Family","Church","Bible","Salvation","Jesus","Greetings","Food", "Animals","Universe","Music","News","Politic","Science"]
 
 
     tab1, tab2, tab3, tab4 = st.tabs([
