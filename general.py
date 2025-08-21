@@ -1259,6 +1259,9 @@ def render_language_academy_page():
             st.markdown(st.session_state.listening_material)
             st.info(
                 "💡 **Pro-Tip:** Copy the transcript text and use the **Text-to-Audio** tool in the **AI Audio Suite** to generate the audio for this exercise!")
+            if st.button(f"🎧 Listen to this  Listening practice"):
+                st.session_state['text_for_audio'] =st.session_state.listening_material
+                st.info("Go to the 'Audio Suite' page to generate the audio.")
             render_download_buttons(st.session_state.listening_material,
                                     f"{target_language_listen}_{level_listen}_listening_practice")
 
