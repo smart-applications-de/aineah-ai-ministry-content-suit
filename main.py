@@ -26,7 +26,7 @@ from crewai_tools import SerperDevTool, ScrapeWebsiteTool
 import streamlit.components.v1 as components
 from openai import api_key
 import crew_utis
-from general import render_swimming_page, render_fitness_page, render_driving_license_page
+from general import render_swimming_page, render_fitness_page, render_driving_license_page, render_language_academy_page
 from user_guid import render_user_guide_page
 from stock_health import  render_health_support_page, render_stock_analyzer_page
 # This file holds global configurations and variables for your app.
@@ -1616,7 +1616,7 @@ def main():
     elif selection == "Single Video Studio": render_single_video_page()
     elif selection == "AI Podcast Studio": render_podcast_studio_page()
     elif selection == "AI Chef Studio": render_chef_page()
-    elif selection == "AI Language Academy": crew_utis.render_language_academy_page()
+    elif selection == "AI Language Academy": render_language_academy_page()
     elif selection == "AI Tutor (Grades 1-12)": render_school_tutor_page()
     elif selection == "University AI Professor": render_university_tutor_page()
     elif selection == "AI Audio Suite": render_audio_suite_page()

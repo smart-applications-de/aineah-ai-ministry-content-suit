@@ -2,664 +2,418 @@
 {
   "vocabulary": [
     {
-      "target_word": "le médecin",
-      "native_translation": "doctor",
-      "english_translation": "doctor",
-      "explanation": "Le médecin examine les patients et prescrit des traitements."
+      "target_word": "Bonjour",
+      "native_translation": "Hello (morning/afternoon)",
+      "english_translation": "Hello (morning/afternoon)",
+      "explanation": "On dit \"Bonjour\" le matin et l'après-midi.  Exemple : Bonjour madame !"
     },
     {
-      "target_word": "l'infirmière",
-      "native_translation": "nurse",
-      "english_translation": "nurse",
-      "explanation": "L'infirmière aide le médecin et s'occupe des patients."
+      "target_word": "Bonsoir",
+      "native_translation": "Good evening/Good night",
+      "english_translation": "Good evening/Good night",
+      "explanation": "On utilise \"Bonsoir\" le soir et la nuit. Exemple : Bonsoir, comment allez-vous ?"
     },
     {
-      "target_word": "le patient",
-      "native_translation": "patient",
-      "english_translation": "patient",
-      "explanation": "Le patient est la personne soignée par le médecin."
+      "target_word": "Salut",
+      "native_translation": "Hi (informal)",
+      "english_translation": "Hi (informal)",
+      "explanation": "Salut est une façon informelle de dire bonjour. Exemple : Salut ! Ça va ?"
     },
     {
-      "target_word": "le chirurgien",
-      "native_translation": "surgeon",
-      "english_translation": "surgeon",
-      "explanation": "Le chirurgien réalise des opérations chirurgicales."
+      "target_word": "Coucou",
+      "native_translation": "Hi (very informal, like \"hey\")",
+      "english_translation": "Hi (very informal, like \"hey\")",
+      "explanation": "Coucou est très informel, utilisé entre amis proches. Exemple : Coucou ! Qu'est-ce que tu fais ?"
     },
     {
-      "target_word": "le spécialiste",
-      "native_translation": "specialist",
-      "english_translation": "specialist",
-      "explanation": "Le spécialiste est un médecin expert dans un domaine précis."
+      "target_word": "Hey",
+      "native_translation": "Hi (anglicism, very informal)",
+      "english_translation": "Hi (anglicism, very informal)",
+      "explanation": "Emprunté à l'anglais, très informel. Exemple : Hey ! On y va ?"
     },
     {
-      "target_word": "le réceptionniste",
-      "native_translation": "receptionist",
-      "english_translation": "receptionist",
-      "explanation": "Le réceptionniste accueille les patients à l'hôpital."
+      "target_word": "Salutations",
+      "native_translation": "Greetings (formal)",
+      "english_translation": "Greetings (formal)",
+      "explanation": "Forme formelle de salutation. Exemple : Salutations, Monsieur le Directeur."
     },
     {
-      "target_word": "le pharmacien",
-      "native_translation": "pharmacist",
-      "english_translation": "pharmacist",
-      "explanation": "Le pharmacien prépare et distribue les médicaments."
+      "target_word": "Au revoir",
+      "native_translation": "Goodbye",
+      "english_translation": "Goodbye",
+      "explanation": "On dit \"Au revoir\" pour dire au revoir. Exemple : Au revoir, à bientôt !"
     },
     {
-      "target_word": "le dentiste",
-      "native_translation": "dentist",
-      "english_translation": "dentist",
-      "explanation": "Le dentiste soigne les dents."
+      "target_word": "À bientôt",
+      "native_translation": "See you soon",
+      "english_translation": "See you soon",
+      "explanation": "On utilise \"À bientôt\" pour dire qu'on se reverra bientôt. Exemple : À bientôt !"
     },
     {
-      "target_word": "le kinésithérapeute",
-      "native_translation": "physiotherapist",
-      "english_translation": "physiotherapist",
-      "explanation": "Le kinésithérapeute aide à la rééducation physique."
+      "target_word": "À plus tard",
+      "native_translation": "See you later",
+      "english_translation": "See you later",
+      "explanation": "On utilise \"À plus tard\" pour dire qu'on se reverra plus tard dans la journée. Exemple : À plus tard !"
     },
     {
-      "target_word": "l'orthophoniste",
-      "native_translation": "speech therapist",
-      "english_translation": "speech therapist",
-      "explanation": "L'orthophoniste soigne les troubles de la parole."
+      "target_word": "À demain",
+      "native_translation": "See you tomorrow",
+      "english_translation": "See you tomorrow",
+      "explanation": "On dit \"À demain\" pour dire qu'on se verra demain. Exemple : À demain !"
     },
     {
-      "target_word": "le radiologue",
-      "native_translation": "radiologist",
-      "english_translation": "radiologist",
-      "explanation": "Le radiologue interprète les radiographies."
+      "target_word": "À ce soir",
+      "native_translation": "See you this evening",
+      "english_translation": "See you this evening",
+      "explanation": "On utilise \"À ce soir\" pour dire qu'on se verra ce soir. Exemple : À ce soir !"
     },
     {
-      "target_word": "l'ambulancier",
-      "native_translation": "paramedic",
-      "english_translation": "paramedic",
-      "explanation": "L'ambulancier transporte les patients en urgence."
+      "target_word": "Bonne journée",
+      "native_translation": "Have a good day",
+      "english_translation": "Have a good day",
+      "explanation": "On souhaite une bonne journée à quelqu'un. Exemple : Bonne journée !"
     },
     {
-      "target_word": "la famille",
-      "native_translation": "family",
-      "english_translation": "family",
-      "explanation": "La famille vient souvent visiter les patients hospitalisés."
+      "target_word": "Bonne soirée",
+      "native_translation": "Have a good evening",
+      "english_translation": "Have a good evening",
+      "explanation": "On souhaite une bonne soirée à quelqu'un. Exemple : Bonne soirée !"
     },
     {
-      "target_word": "le visiteur",
-      "native_translation": "visitor",
-      "english_translation": "visitor",
-      "explanation": "Le visiteur rend visite à un patient à l'hôpital."
+      "target_word": "Bonne nuit",
+      "native_translation": "Good night (sleep)",
+      "english_translation": "Good night (sleep)",
+      "explanation": "On dit \"Bonne nuit\" pour souhaiter une bonne nuit à quelqu'un. Exemple : Bonne nuit et dors bien !"
     },
     {
-      "target_word": "l'hôpital",
-      "native_translation": "hospital",
-      "english_translation": "hospital",
-      "explanation": "L'hôpital est un lieu où les malades sont soignés."
+      "target_word": "Passe une bonne journée",
+      "native_translation": "Have a good day (informal)",
+      "english_translation": "Have a good day (informal)",
+      "explanation": "Version informelle de \"Bonne journée\". Exemple : Passe une bonne journée !"
     },
     {
-      "target_word": "la salle d'attente",
-      "native_translation": "waiting room",
-      "english_translation": "waiting room",
-      "explanation": "Les patients attendent leur tour dans la salle d'attente."
+      "target_word": "Passe une bonne soirée",
+      "native_translation": "Have a good evening (informal)",
+      "english_translation": "Have a good evening (informal)",
+      "explanation": "Version informelle de \"Bonne soirée\". Exemple : Passe une bonne soirée !"
     },
     {
-      "target_word": "la réception",
-      "native_translation": "reception",
-      "english_translation": "reception",
-      "explanation": "La réception est le lieu où l'on s'enregistre à l'hôpital."
+      "target_word": "Passe une bonne nuit",
+      "native_translation": "Have a good night (sleep, informal)",
+      "english_translation": "Have a good night (sleep, informal)",
+      "explanation": "Version informelle de \"Bonne nuit\". Exemple : Passe une bonne nuit !"
     },
     {
-      "target_word": "le bureau",
-      "native_translation": "office",
-      "english_translation": "office",
-      "explanation": "Le médecin travaille dans son bureau."
+      "target_word": "Je m'appelle...",
+      "native_translation": "My name is...",
+      "english_translation": "My name is...",
+      "explanation": "Pour se présenter. Exemple : Je m'appelle Jean."
     },
     {
-      "target_word": "la chambre",
-      "native_translation": "room",
-      "english_translation": "room",
-      "explanation": "Le patient repose dans sa chambre d'hôpital."
+      "target_word": "Comment vous appelez-vous ?",
+      "native_translation": "What is your name? (formal)",
+      "english_translation": "What is your name? (formal)",
+      "explanation": "Pour demander le nom de quelqu'un formellement. Exemple : Comment vous appelez-vous, Monsieur ?"
     },
     {
-      "target_word": "le lit",
-      "native_translation": "bed",
-      "english_translation": "bed",
-      "explanation": "Le patient dort dans le lit."
+      "target_word": "Comment tu t'appelles ?",
+      "native_translation": "What is your name? (informal)",
+      "english_translation": "What is your name? (informal)",
+      "explanation": "Pour demander le nom de quelqu'un informellement. Exemple : Comment tu t'appelles ?"
     },
     {
-      "target_word": "les toilettes",
-      "native_translation": "toilets",
-      "english_translation": "toilets",
-      "explanation": "Les toilettes sont les cabinets."
+      "target_word": "Enchanté(e)",
+      "native_translation": "Pleased to meet you (formal, m/f)",
+      "english_translation": "Pleased to meet you (formal, m/f)",
+      "explanation": "Pour dire qu'on est content de rencontrer quelqu'un (formel). Exemple : Enchanté, Monsieur Dupont."
     },
     {
-      "target_word": "la salle de bain",
-      "native_translation": "bathroom",
-      "english_translation": "bathroom",
-      "explanation": "La salle de bain est la pièce où l'on se lave."
+      "target_word": "Ravi(e) de vous rencontrer",
+      "native_translation": "Pleased to meet you (formal, m/f)",
+      "english_translation": "Pleased to meet you (formal, m/f)",
+      "explanation": "Autre façon formelle de dire qu'on est content de rencontrer quelqu'un. Exemple : Ravi(e) de vous rencontrer."
     },
     {
-      "target_word": "le couloir",
-      "native_translation": "corridor",
-      "english_translation": "corridor",
-      "explanation": "Le couloir relie les différentes pièces de l'hôpital."
+      "target_word": "Ravi(e) de te rencontrer",
+      "native_translation": "Pleased to meet you (informal, m/f)",
+      "english_translation": "Pleased to meet you (informal, m/f)",
+      "explanation": "Version informelle. Exemple : Ravi(e) de te rencontrer !"
     },
     {
-      "target_word": "l'ascenseur",
-      "native_translation": "elevator/lift",
-      "english_translation": "elevator/lift",
-      "explanation": "L'ascenseur permet de monter et descendre les étages."
+      "target_word": "C'est...",
+      "native_translation": "This is...",
+      "english_translation": "This is...",
+      "explanation": "Pour présenter quelqu'un ou quelque chose. Exemple : C'est mon ami, Jean."
     },
     {
-      "target_word": "les urgences",
-      "native_translation": "emergency room",
-      "english_translation": "emergency room",
-      "explanation": "Les urgences accueillent les patients en situation critique."
+      "target_word": "Voici...",
+      "native_translation": "Here is...",
+      "english_translation": "Here is...",
+      "explanation": "Pour présenter quelque chose. Exemple : Voici votre café."
     },
     {
-      "target_word": "le bloc opératoire",
-      "native_translation": "operating theatre",
-      "english_translation": "operating theatre",
-      "explanation": "Le bloc opératoire est la salle où se déroulent les opérations."
+      "target_word": "Je suis...",
+      "native_translation": "I am...",
+      "english_translation": "I am...",
+      "explanation": "Pour se décrire. Exemple : Je suis étudiant."
     },
     {
-      "target_word": "la pharmacie",
-      "native_translation": "pharmacy (within the hospital)",
-      "english_translation": "pharmacy (within the hospital)",
-      "explanation": "La pharmacie de l'hôpital distribue les médicaments aux patients."
+      "target_word": "Il/Elle s'appelle...",
+      "native_translation": "His/Her name is...",
+      "english_translation": "His/Her name is...",
+      "explanation": "Pour parler de quelqu'un. Exemple : Il s'appelle Pierre."
     },
     {
-      "target_word": "le laboratoire",
-      "native_translation": "laboratory",
-      "english_translation": "laboratory",
-      "explanation": "Le laboratoire effectue des analyses médicales."
+      "target_word": "Bonjour Madame/Monsieur",
+      "native_translation": "Hello Madam/Sir",
+      "english_translation": "Hello Madam/Sir",
+      "explanation": "Salutation formelle. Exemple : Bonjour Madame, comment allez-vous ?"
     },
     {
-      "target_word": "la radiologie",
-      "native_translation": "radiology department",
-      "english_translation": "radiology department",
-      "explanation": "Le service de radiologie réalise des examens d'imagerie médicale."
+      "target_word": "Bonjour Mademoiselle",
+      "native_translation": "Hello Miss (young unmarried woman)",
+      "english_translation": "Hello Miss (young unmarried woman)",
+      "explanation": "Salutation formelle pour une jeune femme non mariée. Exemple : Bonjour Mademoiselle."
     },
     {
-      "target_word": "la salle de soins intensifs",
-      "native_translation": "intensive care unit",
-      "english_translation": "intensive care unit",
-      "explanation": "La salle de soins intensifs accueille les patients les plus graves."
+      "target_word": "Ça va ?",
+      "native_translation": "How are you? (informal)",
+      "english_translation": "How are you? (informal)",
+      "explanation": "Demande informelle pour savoir comment va quelqu'un. Exemple : Ça va ?"
     },
     {
-      "target_word": "l'examen médical",
-      "native_translation": "medical examination",
-      "english_translation": "medical examination",
-      "explanation": "L'examen médical permet de diagnostiquer la maladie."
+      "target_word": "Comment allez-vous ?",
+      "native_translation": "How are you? (formal)",
+      "english_translation": "How are you? (formal)",
+      "explanation": "Demande formelle pour savoir comment va quelqu'un. Exemple : Comment allez-vous, Monsieur ?"
     },
     {
-      "target_word": "la consultation",
-      "native_translation": "consultation",
-      "english_translation": "consultation",
-      "explanation": "La consultation est le rendez-vous avec le médecin."
+      "target_word": "Bien, merci",
+      "native_translation": "Fine, thank you",
+      "english_translation": "Fine, thank you",
+      "explanation": "Réponse positive à la question \"Comment allez-vous ?\". Exemple : Bien, merci."
     },
     {
-      "target_word": "l'opération",
-      "native_translation": "operation/surgery",
-      "english_translation": "operation/surgery",
-      "explanation": "L'opération est une intervention chirurgicale."
+      "target_word": "Très bien, merci",
+      "native_translation": "Very well, thank you",
+      "english_translation": "Very well, thank you",
+      "explanation": "Réponse très positive. Exemple : Très bien, merci."
     },
     {
-      "target_word": "l'injection",
-      "native_translation": "injection",
-      "english_translation": "injection",
-      "explanation": "L'injection consiste à introduire un médicament par voie intraveineuse."
+      "target_word": "Pas mal",
+      "native_translation": "Not bad",
+      "english_translation": "Not bad",
+      "explanation": "Réponse assez positive. Exemple : Pas mal, merci."
     },
     {
-      "target_word": "la prise de sang",
-      "native_translation": "blood test",
-      "english_translation": "blood test",
-      "explanation": "La prise de sang permet d'analyser le sang du patient."
+      "target_word": "Comme ci, comme ça",
+      "native_translation": "So-so",
+      "english_translation": "So-so",
+      "explanation": "Réponse neutre. Exemple : Comme ci, comme ça."
     },
     {
-      "target_word": "la radiographie",
-      "native_translation": "X-ray",
-      "english_translation": "X-ray",
-      "explanation": "La radiographie est une image des os et des organes."
+      "target_word": "Ça va bien, merci",
+      "native_translation": "I'm fine, thank you",
+      "english_translation": "I'm fine, thank you",
+      "explanation": "Réponse positive et plus détaillée. Exemple : Ça va bien, merci."
     },
     {
-      "target_word": "l'échographie",
-      "native_translation": "ultrasound",
-      "english_translation": "ultrasound",
-      "explanation": "L'échographie utilise les ultrasons pour visualiser les organes."
+      "target_word": "Et vous/toi ?",
+      "native_translation": "And you? (formal/informal)",
+      "english_translation": "And you? (formal/informal)",
+      "explanation": "Pour demander des nouvelles à quelqu'un après avoir répondu à la question \"Comment allez-vous ?\". Exemple : Et vous ?"
     },
     {
-      "target_word": "l'IRM",
-      "native_translation": "MRI scan",
-      "english_translation": "MRI scan",
-      "explanation": "L'IRM utilise un champ magnétique pour créer des images du corps."
+      "target_word": "Merci",
+      "native_translation": "Thank you",
+      "english_translation": "Thank you",
+      "explanation": "Pour remercier quelqu'un. Exemple : Merci beaucoup !"
     },
     {
-      "target_word": "le scanner",
-      "native_translation": "CT scan",
-      "english_translation": "CT scan",
-      "explanation": "Le scanner utilise des rayons X pour créer des images du corps."
+      "target_word": "De rien",
+      "native_translation": "You're welcome",
+      "english_translation": "You're welcome",
+      "explanation": "Pour répondre à un remerciement. Exemple : De rien !"
     },
     {
-      "target_word": "les médicaments",
-      "native_translation": "medication/medicine",
-      "english_translation": "medication/medicine",
-      "explanation": "Les médicaments soulagent la douleur et soignent les maladies."
+      "target_word": "Il n'y a pas de quoi",
+      "native_translation": "You're welcome (more formal)",
+      "english_translation": "You're welcome (more formal)",
+      "explanation": "Réponse plus formelle à un remerciement. Exemple : Il n'y a pas de quoi."
     },
     {
-      "target_word": "le traitement",
-      "native_translation": "treatment",
-      "english_translation": "treatment",
-      "explanation": "Le traitement vise à guérir la maladie."
+      "target_word": "Bon matin",
+      "native_translation": "Good morning",
+      "english_translation": "Good morning",
+      "explanation": "On dit \"Bon matin\" le matin. Exemple : Bon matin !"
     },
     {
-      "target_word": "la prescription",
-      "native_translation": "prescription",
-      "english_translation": "prescription",
-      "explanation": "La prescription indique les médicaments à prendre."
+      "target_word": "Bon après-midi",
+      "native_translation": "Good afternoon",
+      "english_translation": "Good afternoon",
+      "explanation": "On dit \"Bon après-midi\" l'après-midi. Exemple : Bon après-midi !"
     },
     {
-      "target_word": "le pansement",
-      "native_translation": "dressing",
-      "english_translation": "dressing",
-      "explanation": "Le pansement protège une blessure."
+      "target_word": "Bonne fin de journée",
+      "native_translation": "Good end of the day",
+      "english_translation": "Good end of the day",
+      "explanation": "On dit \"Bonne fin de journée\" en fin de journée. Exemple : Bonne fin de journée !"
     },
     {
-      "target_word": "la vaccination",
-      "native_translation": "vaccination",
-      "english_translation": "vaccination",
-      "explanation": "La vaccination protège contre certaines maladies."
+      "target_word": "Allô ?",
+      "native_translation": "Hello? (on the phone)",
+      "english_translation": "Hello? (on the phone)",
+      "explanation": "Pour répondre au téléphone. Exemple : Allô ?"
     },
     {
-      "target_word": "la rééducation",
-      "native_translation": "rehabilitation",
-      "english_translation": "rehabilitation",
-      "explanation": "La rééducation permet de récupérer après une blessure."
+      "target_word": "C'est qui ?",
+      "native_translation": "Who is it? (informal)",
+      "english_translation": "Who is it? (informal)",
+      "explanation": "Pour demander qui appelle (informel). Exemple : C'est qui ?"
     },
     {
-      "target_word": "la physiothérapie",
-      "native_translation": "physiotherapy",
-      "english_translation": "physiotherapy",
-      "explanation": "La physiothérapie utilise des exercices pour améliorer la mobilité."
+      "target_word": "Qui appelle ?",
+      "native_translation": "Who's calling? (formal)",
+      "english_translation": "Who's calling? (formal)",
+      "explanation": "Pour demander qui appelle (formel). Exemple : Qui appelle ?"
     },
     {
-      "target_word": "la thérapie",
-      "native_translation": "therapy",
-      "english_translation": "therapy",
-      "explanation": "La thérapie vise à améliorer l'état de santé du patient."
+      "target_word": "Je voudrais parler à...",
+      "native_translation": "I would like to speak to...",
+      "english_translation": "I would like to speak to...",
+      "explanation": "Pour demander à parler à quelqu'un au téléphone. Exemple : Je voudrais parler à Monsieur Dupont."
     },
     {
-      "target_word": "le stéthoscope",
-      "native_translation": "stethoscope",
-      "english_translation": "stethoscope",
-      "explanation": "Le médecin utilise le stéthoscope pour écouter le cœur et les poumons."
+      "target_word": "Mesdames et Messieurs",
+      "native_translation": "Ladies and gentlemen",
+      "english_translation": "Ladies and gentlemen",
+      "explanation": "Pour s'adresser à un groupe de personnes. Exemple : Mesdames et Messieurs, bienvenue !"
     },
     {
-      "target_word": "le thermomètre",
-      "native_translation": "thermometer",
-      "english_translation": "thermometer",
-      "explanation": "Le thermomètre mesure la température corporelle."
+      "target_word": "Monsieur le Directeur",
+      "native_translation": "Mr. Director",
+      "english_translation": "Mr. Director",
+      "explanation": "Pour s'adresser au directeur. Exemple : Bonjour Monsieur le Directeur."
     },
     {
-      "target_word": "le tensiomètre",
-      "native_translation": "blood pressure monitor",
-      "english_translation": "blood pressure monitor",
-      "explanation": "Le tensiomètre mesure la pression artérielle."
+      "target_word": "Madame la Directrice",
+      "native_translation": "Mrs. Director",
+      "english_translation": "Mrs. Director",
+      "explanation": "Pour s'adresser à la directrice. Exemple : Bonjour Madame la Directrice."
     },
     {
-      "target_word": "la seringue",
-      "native_translation": "syringe",
-      "english_translation": "syringe",
-      "explanation": "La seringue sert à injecter des médicaments."
+      "target_word": "Votre Excellence",
+      "native_translation": "Your Excellency",
+      "english_translation": "Your Excellency",
+      "explanation": "Pour s'adresser à une personne de haut rang. Exemple : Votre Excellence."
     },
     {
-      "target_word": "le bandage",
-      "native_translation": "bandage",
-      "english_translation": "bandage",
-      "explanation": "Le bandage maintient une blessure en place."
+      "target_word": "Yo",
+      "native_translation": "Yo (slang)",
+      "english_translation": "Yo (slang)",
+      "explanation": "Argot, très informel. Exemple : Yo ! Qu'est-ce qui se passe ?"
     },
     {
-      "target_word": "le pansement adhésif",
-      "native_translation": "adhesive bandage",
-      "english_translation": "adhesive bandage",
-      "explanation": "Le pansement adhésif est un pansement qui colle à la peau."
+      "target_word": "Quoi de neuf ?",
+      "native_translation": "What's up?",
+      "english_translation": "What's up?",
+      "explanation": "Demande informelle pour savoir les nouvelles. Exemple : Quoi de neuf ?"
     },
     {
-      "target_word": "les comprimés",
-      "native_translation": "tablets",
-      "english_translation": "tablets",
-      "explanation": "Les comprimés sont des médicaments sous forme de pastilles."
+      "target_word": "Quoi de nouveau ?",
+      "native_translation": "What's new?",
+      "english_translation": "What's new?",
+      "explanation": "Demande plus formelle pour savoir les nouvelles. Exemple : Quoi de nouveau ?"
     },
     {
-      "target_word": "les capsules",
-      "native_translation": "capsules",
-      "english_translation": "capsules",
-      "explanation": "Les capsules sont des médicaments contenus dans une gélatine."
+      "target_word": "Bonjour à tous",
+      "native_translation": "Hello everyone",
+      "english_translation": "Hello everyone",
+      "explanation": "Pour saluer un groupe de personnes. Exemple : Bonjour à tous !"
     },
     {
-      "target_word": "le sirop",
-      "native_translation": "syrup",
-      "english_translation": "syrup",
-      "explanation": "Le sirop est un médicament liquide et sucré."
+      "target_word": "Bonsoir à tous",
+      "native_translation": "Good evening everyone",
+      "english_translation": "Good evening everyone",
+      "explanation": "Pour saluer un groupe de personnes le soir. Exemple : Bonsoir à tous !"
     },
     {
-      "target_word": "la crème",
-      "native_translation": "cream",
-      "english_translation": "cream",
-      "explanation": "La crème est une préparation onctueuse pour la peau."
+      "target_word": "Au revoir à tous",
+      "native_translation": "Goodbye everyone",
+      "english_translation": "Goodbye everyone",
+      "explanation": "Pour dire au revoir à un groupe de personnes. Exemple : Au revoir à tous !"
     },
     {
-      "target_word": "la pommade",
-      "native_translation": "ointment",
-      "english_translation": "ointment",
-      "explanation": "La pommade est une préparation grasse pour la peau."
+      "target_word": "Bonne journée à tous",
+      "native_translation": "Have a good day everyone",
+      "english_translation": "Have a good day everyone",
+      "explanation": "Pour souhaiter une bonne journée à un groupe de personnes. Exemple : Bonne journée à tous !"
     },
     {
-      "target_word": "le flacon",
-      "native_translation": "bottle",
-      "english_translation": "bottle",
-      "explanation": "Le flacon contient un liquide."
+      "target_word": "Bonne soirée à tous",
+      "native_translation": "Have a good evening everyone",
+      "english_translation": "Have a good evening everyone",
+      "explanation": "Pour souhaiter une bonne soirée à un groupe de personnes. Exemple : Bonne soirée à tous !"
     },
     {
-      "target_word": "le tube",
-      "native_translation": "tube",
-      "english_translation": "tube",
-      "explanation": "Le tube contient une crème ou une pommade."
+      "target_word": "Salut ça va ?",
+      "native_translation": "Hi, how are you? (informal)",
+      "english_translation": "Hi, how are you? (informal)",
+      "explanation": "Salutation et demande informelle des nouvelles. Exemple : Salut ça va ?"
     },
     {
-      "target_word": "la douleur",
-      "native_translation": "pain",
-      "english_translation": "pain",
-      "explanation": "La douleur est une sensation désagréable."
+      "target_word": "Ça roule ?",
+      "native_translation": "How's it going? (informal)",
+      "english_translation": "How's it going? (informal)",
+      "explanation": "Demande informelle des nouvelles. Exemple : Ça roule ?"
     },
     {
-      "target_word": "la fièvre",
-      "native_translation": "fever",
-      "english_translation": "fever",
-      "explanation": "La fièvre est une augmentation de la température corporelle."
+      "target_word": "Ça va bien ?",
+      "native_translation": "How are you? (informal)",
+      "english_translation": "How are you? (informal)",
+      "explanation": "Demande informelle des nouvelles. Exemple : Ça va bien ?"
     },
     {
-      "target_word": "la toux",
-      "native_translation": "cough",
-      "english_translation": "cough",
-      "explanation": "La toux est une expulsion brusque de l'air des poumons."
+      "target_word": "Bisous",
+      "native_translation": "Kisses (often used in written comm.)",
+      "english_translation": "Kisses (often used in written comm.)",
+      "explanation": "Souvent utilisé à la fin d'un message écrit. Exemple : Bisous !"
     },
     {
-      "target_word": "le rhume",
-      "native_translation": "cold",
-      "english_translation": "cold",
-      "explanation": "Le rhume est une infection des voies respiratoires supérieures."
+      "target_word": "Gros bisous",
+      "native_translation": "Big kisses",
+      "english_translation": "Big kisses",
+      "explanation": "Pour exprimer plus d'affection. Exemple : Gros bisous !"
     },
     {
-      "target_word": "la grippe",
-      "native_translation": "flu",
-      "english_translation": "flu",
-      "explanation": "La grippe est une infection virale."
+      "target_word": "Je t'aime",
+      "native_translation": "I love you (informal)",
+      "english_translation": "I love you (informal)",
+      "explanation": "Pour dire \"Je t'aime\" de façon informelle. Exemple : Je t'aime !"
     },
     {
-      "target_word": "la blessure",
-      "native_translation": "injury/wound",
-      "english_translation": "injury/wound",
-      "explanation": "La blessure est une lésion de la peau ou des tissus."
+      "target_word": "Je vous aime",
+      "native_translation": "I love you (formal)",
+      "english_translation": "I love you (formal)",
+      "explanation": "Pour dire \"Je t'aime\" de façon formelle. Exemple : Je vous aime."
     },
     {
-      "target_word": "la fracture",
-      "native_translation": "fracture",
-      "english_translation": "fracture",
-      "explanation": "La fracture est une rupture d'un os."
+      "target_word": "S'il vous plaît",
+      "native_translation": "Please",
+      "english_translation": "Please",
+      "explanation": "Pour être poli. Exemple : S'il vous plaît, un café."
     },
     {
-      "target_word": "l'infection",
-      "native_translation": "infection",
-      "english_translation": "infection",
-      "explanation": "L'infection est une invasion de micro-organismes."
+      "target_word": "Merci beaucoup",
+      "native_translation": "Thank you very much",
+      "english_translation": "Thank you very much",
+      "explanation": "Pour remercier chaleureusement. Exemple : Merci beaucoup !"
     },
     {
-      "target_word": "l'allergie",
-      "native_translation": "allergy",
-      "english_translation": "allergy",
-      "explanation": "L'allergie est une réaction excessive du système immunitaire."
-    },
-    {
-      "target_word": "la maladie",
-      "native_translation": "illness/disease",
-      "english_translation": "illness/disease",
-      "explanation": "La maladie est un état de santé altéré."
-    },
-    {
-      "target_word": "le mal de tête",
-      "native_translation": "headache",
-      "english_translation": "headache",
-      "explanation": "Le mal de tête est une douleur à la tête."
-    },
-    {
-      "target_word": "le mal de ventre",
-      "native_translation": "stomachache",
-      "english_translation": "stomachache",
-      "explanation": "Le mal de ventre est une douleur à l'estomac."
-    },
-    {
-      "target_word": "la fatigue",
-      "native_translation": "fatigue/tiredness",
-      "english_translation": "fatigue/tiredness",
-      "explanation": "La fatigue est une sensation de lassitude."
-    },
-    {
-      "target_word": "la nausée",
-      "native_translation": "nausea",
-      "english_translation": "nausea",
-      "explanation": "La nausée est une sensation de malaise."
-    },
-    {
-      "target_word": "les vomissements",
-      "native_translation": "vomiting",
-      "english_translation": "vomiting",
-      "explanation": "Les vomissements sont l'expulsion de nourriture de l'estomac."
-    },
-    {
-      "target_word": "consulter",
-      "native_translation": "to consult",
-      "english_translation": "to consult",
-      "explanation": "Je dois consulter un médecin."
-    },
-    {
-      "target_word": "examiner",
-      "native_translation": "to examine",
-      "english_translation": "to examine",
-      "explanation": "Le médecin va m'examiner."
-    },
-    {
-      "target_word": "soigner",
-      "native_translation": "to treat/cure",
-      "english_translation": "to treat/cure",
-      "explanation": "Il faut soigner cette blessure."
-    },
-    {
-      "target_word": "opérer",
-      "native_translation": "to operate",
-      "english_translation": "to operate",
-      "explanation": "Le chirurgien va m'opérer."
-    },
-    {
-      "target_word": "injecter",
-      "native_translation": "to inject",
-      "english_translation": "to inject",
-      "explanation": "L'infirmière va m'injecter."
-    },
-    {
-      "target_word": "prescrire",
-      "native_translation": "to prescribe",
-      "english_translation": "to prescribe",
-      "explanation": "Le médecin va me prescrire des médicaments."
-    },
-    {
-      "target_word": "prendre",
-      "native_translation": "to take (medication)",
-      "english_translation": "to take (medication)",
-      "explanation": "Je dois prendre mes médicaments."
-    },
-    {
-      "target_word": "appliquer",
-      "native_translation": "to apply (cream, bandage)",
-      "english_translation": "to apply (cream, bandage)",
-      "explanation": "Il faut appliquer de la crème sur la blessure."
-    },
-    {
-      "target_word": "guérir",
-      "native_translation": "to heal/cure",
-      "english_translation": "to heal/cure",
-      "explanation": "J'espère que je vais guérir rapidement."
-    },
-    {
-      "target_word": "récupérer",
-      "native_translation": "to recover",
-      "english_translation": "to recover",
-      "explanation": "Il faut du temps pour récupérer après une opération."
-    },
-    {
-      "target_word": "souffrir",
-      "native_translation": "to suffer",
-      "english_translation": "to suffer",
-      "explanation": "Je souffre d'une forte douleur."
-    },
-    {
-      "target_word": "appeler",
-      "native_translation": "to call",
-      "english_translation": "to call",
-      "explanation": "Appelez les urgences immédiatement."
-    },
-    {
-      "target_word": "attendre",
-      "native_translation": "to wait",
-      "english_translation": "to wait",
-      "explanation": "Je dois attendre mon tour."
-    },
-    {
-      "target_word": "rentrer",
-      "native_translation": "to enter/go in",
-      "english_translation": "to enter/go in",
-      "explanation": "Rentrez dans le bureau du médecin."
-    },
-    {
-      "target_word": "sortir",
-      "native_translation": "to leave/go out",
-      "english_translation": "to leave/go out",
-      "explanation": "Je peux sortir de l'hôpital maintenant."
-    },
-    {
-      "target_word": "malade",
-      "native_translation": "sick/ill",
-      "english_translation": "sick/ill",
-      "explanation": "Je suis malade aujourd'hui."
-    },
-    {
-      "target_word": "blessé(e)",
-      "native_translation": "injured",
-      "english_translation": "injured",
-      "explanation": "Il est blessé à la jambe."
-    },
-    {
-      "target_word": "gravement malade",
-      "native_translation": "seriously ill",
-      "english_translation": "seriously ill",
-      "explanation": "Elle est gravement malade."
-    },
-    {
-      "target_word": "urgent(e)",
-      "native_translation": "urgent",
-      "english_translation": "urgent",
-      "explanation": "C'est une situation urgente."
-    },
-    {
-      "target_word": "grave",
-      "native_translation": "serious",
-      "english_translation": "serious",
-      "explanation": "C'est une blessure grave."
-    },
-    {
-      "target_word": "léger(ère)",
-      "native_translation": "mild",
-      "english_translation": "mild",
-      "explanation": "C'est une douleur légère."
-    },
-    {
-      "target_word": "bon(ne)",
-      "native_translation": "good (health)",
-      "english_translation": "good (health)",
-      "explanation": "Je suis en bonne santé."
-    },
-    {
-      "target_word": "mauvais(e)",
-      "native_translation": "bad (health)",
-      "english_translation": "bad (health)",
-      "explanation": "Je suis en mauvais santé."
-    },
-    {
-      "target_word": "fort(e)",
-      "native_translation": "strong (pain)",
-      "english_translation": "strong (pain)",
-      "explanation": "J'ai une douleur forte."
-    },
-    {
-      "target_word": "faible",
-      "native_translation": "weak",
-      "english_translation": "weak",
-      "explanation": "Je me sens faible."
-    },
-    {
-      "target_word": "malade",
-      "native_translation": "sick",
-      "english_translation": "sick",
-      "explanation": "Il est malade."
-    },
-    {
-      "target_word": "aide",
-      "native_translation": "help",
-      "english_translation": "help",
-      "explanation": "J'ai besoin d'aide."
-    },
-    {
-      "target_word": "urgence",
-      "native_translation": "emergency",
-      "english_translation": "emergency",
-      "explanation": "Il y a une urgence."
-    },
-    {
-      "target_word": "ambulance",
-      "native_translation": "ambulance",
-      "english_translation": "ambulance",
-      "explanation": "Appelez une ambulance."
-    },
-    {
-      "target_word": "assurance maladie",
-      "native_translation": "health insurance",
-      "english_translation": "health insurance",
-      "explanation": "J'ai une assurance maladie."
-    },
-    {
-      "target_word": "ordonnance",
-      "native_translation": "prescription",
-      "english_translation": "prescription",
-      "explanation": "Voici mon ordonnance."
-    },
-    {
-      "target_word": "dossier médical",
-      "native_translation": "medical file",
-      "english_translation": "medical file",
-      "explanation": "Mon dossier médical est complet."
-    },
-    {
-      "target_word": "rendez-vous",
-      "native_translation": "appointment",
-      "english_translation": "appointment",
-      "explanation": "J'ai un rendez-vous chez le médecin."
-    },
-    {
-      "target_word": "hospitalisation",
-      "native_translation": "hospitalization",
-      "english_translation": "hospitalization",
-      "explanation": "Son hospitalisation a duré une semaine."
-    },
-    {
-      "target_word": "décharge",
-      "native_translation": "discharge",
-      "english_translation": "discharge",
-      "explanation": "Il a reçu sa décharge de l'hôpital."
+      "target_word": "Excusez-moi",
+      "native_translation": "Excuse me",
+      "english_translation": "Excuse me",
+      "explanation": "Pour s'excuser. Exemple : Excusez-moi, je vous en prie."
     }
   ]
 }
