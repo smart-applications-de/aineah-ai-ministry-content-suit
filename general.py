@@ -13,7 +13,7 @@ from crewai_tools import SerperDevTool
 from google import genai
 import docx
 import markdown2
-from main_v2 import  get_available_models, render_download_buttons
+from main_v2 import  get_available_models, render_download_buttons,LANGUAGES
 
 
 
@@ -346,7 +346,6 @@ def render_driving_license_page():
         st.session_state.driving_guide = None
 
     available_models = get_available_models(st.session_state.get('gemini_key'))
-    LANGUAGES = ("English", "German", "French", "Swahili", "Italian", "Spanish", "Portuguese")
 
     with st.form("driving_form"):
         st.header("Create Your Study Guide")
@@ -376,50 +375,427 @@ def render_driving_license_page():
                                 f"driving_guide_{country.lower()}_{license_class.lower()}")
 
 
+class LessonPlannerCrew:
+    def __init__(self, model_name, language, grade_level, subject, topic):
+        os.environ["GOOGLE_API_KEY"] = st.session_state.get('gemini_key', '')
+        self.llm = LLM(model=model_name, temperature=0.7, api_key=os.environ["GOOGLE_API_KEY"])
+        self.language = language
+        self.grade_level = grade_level
+        self.subject = subject
+        self.topic = topic
+
+    def run(self):
+        agent = Agent(
+            role='Lesson Plan Architect',
+            goal=f"Create a detailed, engaging, and age-appropriate lesson plan for a {self.grade_level} {self.subject} class on the topic of '{self.topic}'.",
+            backstory="You are an expert instructional designer with a PhD in Education. You specialize in creating lesson plans that are not only informative but also highly engaging and tailored to specific grade levels and subjects. You adhere to the highest pedagogical standards.",
+            llm=self.llm,
+            verbose=True
+        )
+        task_description = f"""
+        Write a complete lesson plan in {self.language} for a {self.grade_level} {self.subject} class of approximately 20-25 students. The topic is '{self.topic}'.
+        Your lesson plan MUST adhere to the following structure and principles:
+        - **Learning Objectives:** Clearly define what students should know or be able to do.
+        - **Materials & Resources:** List all necessary materials.
+        - **Lesson Sequence:** Provide a logical, step-by-step sequence.
+        - **Time Constraints:** Set realistic time estimates for each part.
+        - **Engaging Activities:** Incorporate interactive and tech-friendly activities.
+        - **Differentiated Instruction:** Include options to accommodate different learning styles.
+        - **Assessment:** Suggest a method for assessing student understanding.
+        - **Contingency Plan:** Suggest an alternative plan or extension activity.
+        """
+        task = Task(
+            description=task_description,
+            agent=agent,
+            expected_output="A complete, well-structured lesson plan in markdown format, including all specified sections.",
+            output_file="lesson_plan.md"
+        )
+        crew = Crew(agents=[agent], tasks=[task], process=Process.sequential, verbose=True)
+        crew.kickoff()
+        with open("lesson_plan.md", "r", encoding="utf-8") as f:
+            return f.read()
+
+
+class ExamGeneratorCrew:
+    def __init__(self, model_name, language, grade_level, subject, exam_type, country):
+        os.environ["GOOGLE_API_KEY"] = st.session_state.get('gemini_key', '')
+        os.environ["SERPER_API_KEY"] = st.session_state.get('serper_key', '')
+        self.llm = LLM(model=model_name, temperature=0.7, api_key=os.environ["GOOGLE_API_KEY"])
+        self.language = language
+        self.grade_level = grade_level
+        self.subject = subject
+        self.exam_type = exam_type
+        self.country = country
+
+    def run(self):
+        agents = [
+            Agent(
+                role='Curriculum Specialist',
+                goal=f"Identify the key topics and learning standards for a {self.grade_level} {self.subject} {self.exam_type} in {self.country}.",
+                backstory=f"You are an expert in global education curricula, with a deep understanding of the learning objectives for {self.subject} at the {self.grade_level} level in {self.country}.",
+                llm=self.llm, tools=[SerperDevTool()], verbose=True
+            ),
+            Agent(
+                role='Exam Designer',
+                goal="Create a set of exam questions that accurately assess student knowledge on the provided topics, focusing on grammar and reading comprehension.",
+                backstory="You are a professional exam creator for educational institutions. You design fair, challenging, and well-structured questions that cover a range of cognitive skills.",
+                llm=self.llm, verbose=True
+            ),
+            Agent(
+                role='Chief Editor and Answer Key Compiler',
+                goal="Compile all exam questions into a cohesive document and create a separate, clear answer key.",
+                backstory="You are a meticulous editor for an educational testing service. You ensure that exams are perfectly formatted and that the answer key is unambiguous.",
+                llm=self.llm, verbose=True
+            )
+        ]
+        task1 = Task(
+            description=f"Based on the curriculum for {self.subject} for a {self.grade_level} in {self.country}, outline the key topics that should be covered in a {self.exam_type}.",
+            agent=agents[0],
+            expected_output="A bulleted list of 3-5 key curriculum topics."
+        )
+        task2 = Task(
+            description=f"Create a set of exam questions based on the key topics. The exam should include a grammar section and a reading comprehension section with a short essay. The instructions must be in {self.language}.",
+            agent=agents[1],
+            context=[task1],
+            expected_output="A well-structured markdown document with numbered questions for each section."
+        )
+        task3 = Task(
+            description=f"Combine the exam questions into a single document titled '{self.exam_type}'. Then, create a separate section at the end titled 'Answer Key' with clear solutions for all questions. The entire output must be in {self.language}.",
+            agent=agents[2],
+            context=[task2],
+            expected_output=f"A complete, beautifully formatted markdown document containing the full {self.exam_type} and a comprehensive answer key.",
+            output_file="exam_paper.md"
+        )
+        crew = Crew(agents=agents, tasks=[task1, task2, task3], process=Process.sequential, verbose=True)
+        crew.kickoff()
+        with open("exam_paper.md", "r", encoding="utf-8") as f:
+            return f.read()
+
+
 # ==============================================================================
-## 4. Main Application Router
+## 3. Page Rendering Function
 # ==============================================================================
 
-def main():
-    st.set_page_config(page_title="AI Health & Fitness Suite", layout="wide")
+def render_lesson_planner_page():
+    st.title("🍎 AI Education Studio")
+    st.markdown("Your hub for creating detailed lesson plans and custom exams.")
+
+    tab1, tab2 = st.tabs(["**Lesson Planner**", "**Exam Generator**"])
+
+    with tab1:
+        st.header("Create a Custom Lesson Plan")
+        if 'lesson_plan' not in st.session_state: st.session_state.lesson_plan = None
+        available_models = get_available_models(st.session_state.get('gemini_key'))
+        GRADE_LEVELS = [f"{i}{'st' if i == 1 else 'nd' if i == 2 else 'rd' if i == 3 else 'th'} Grade" for i in
+                        range(1, 13)] + ["High School (9-12)"]
+        SUBJECTS = ["History", "Science", "Mathematics", "Literature", "Art", "Geography", "Music"]
+
+        with st.form("lesson_planner_form"):
+            col1, col2 = st.columns(2)
+            grade_level = col1.selectbox("Select Grade Level:", GRADE_LEVELS, key="lp_grade")
+            subject = col2.selectbox("Select Subject:", SUBJECTS, key="lp_subject")
+            topic = st.text_input("Enter the Lesson Topic:",
+                                  placeholder="e.g., The History of the Versailles Palace, The Water Cycle")
+            col3, col4 = st.columns(2)
+            language = col3.selectbox("Language for the Lesson Plan:", LANGUAGES, key="lp_lang")
+            selected_model = col4.selectbox("Choose AI Model:", available_models,
+                                            key="lp_model") if available_models else None
+
+            if st.form_submit_button("Generate Lesson Plan", use_container_width=True):
+                if not all([grade_level, subject, topic, language, selected_model]):
+                    st.error("Please fill all fields and select a model.")
+                else:
+                    with st.spinner(f"The AI Lesson Plan Architect is designing your lesson..."):
+                        crew = LessonPlannerCrew(selected_model, language, grade_level, subject, topic)
+                        st.session_state.lesson_plan = crew.run()
+
+        if st.session_state.get('lesson_plan'):
+            st.markdown("---");
+            st.header(f"Your Lesson Plan: {topic}");
+            st.markdown(st.session_state.lesson_plan)
+            render_download_buttons(st.session_state.lesson_plan, f"lesson_plan_{topic.replace(' ', '_').lower()}")
+
+    with tab2:
+        st.header("Create a Custom Exam")
+        if 'exam_paper' not in st.session_state: st.session_state.exam_paper = None
+        available_models = get_available_models(st.session_state.get('gemini_key'))
+
+        with st.form("exam_form"):
+            col1, col2 = st.columns(2)
+            country = col1.text_input("Country (for curriculum standards)", "USA", key="exam_country")
+            grade_level_exam = col2.selectbox("Select Grade Level:", GRADE_LEVELS, key="exam_grade")
+
+            col3, col4 = st.columns(2)
+            subject_exam = col3.selectbox("Select Subject:", SUBJECTS, key="exam_subject")
+            exam_type = col4.selectbox("Select Exam Type:", ["Intermediary Exam", "Final Exam"])
+
+            col5, col6 = st.columns(2)
+            language_exam = col5.selectbox("Language for the Exam:", LANGUAGES, key="exam_lang")
+            selected_model_exam = col6.selectbox("Choose AI Model:", available_models,
+                                                 key="exam_model") if available_models else None
+
+            if st.form_submit_button(f"Generate {exam_type}", use_container_width=True):
+                if not all([country, grade_level_exam, subject_exam, language_exam, selected_model_exam]):
+                    st.error("Please fill all fields and select a model.")
+                else:
+                    with st.spinner(f"The AI Exam Committee is preparing your {exam_type}..."):
+                        crew = ExamGeneratorCrew(selected_model_exam, language_exam, grade_level_exam, subject_exam,
+                                                 exam_type, country)
+                        st.session_state.exam_paper = crew.run()
+
+        if st.session_state.get('exam_paper'):
+            st.markdown("---");
+            st.header(f"Your {subject_exam} {exam_type}");
+            st.markdown(st.session_state.exam_paper)
+            render_download_buttons(st.session_state.exam_paper,
+                                    f"{subject_exam.lower()}_{exam_type.lower().replace(' ', '_')}")
+
+
+# ==============================================================================
+## This block allows the file to be run standalone for testing
+# ==============================================================================
+if __name__ == '__main__':
+    st.set_page_config(page_title="AI Education Studio", layout="wide")
 
     st.sidebar.title("🔐 Central Configuration")
     st.session_state['gemini_key'] = st.sidebar.text_input("Google Gemini API Key", type="password",
                                                            value=st.session_state.get('gemini_key', ''))
     st.session_state['serper_key'] = st.sidebar.text_input("Serper.dev API Key", type="password",
                                                            value=st.session_state.get('serper_key', ''))
-    st.sidebar.markdown("---")
 
-    st.sidebar.title("Navigation")
-    page_options = {
-        "AI Swimming Coach": "🏊",
-        "AI Fitness Trainer": "🏋️",
-        "AI Driving License Guide": "🚗"
-    }
-    selection = st.sidebar.radio("Go to", list(page_options.keys()))
-
-    keys_needed = {
-        "AI Swimming Coach": ['gemini_key', 'serper_key'],
-        "AI Fitness Trainer": ['gemini_key', 'serper_key'],
-        "AI Driving License Guide": ['gemini_key', 'serper_key']
-    }
-
-    if not all(st.session_state.get(key) for key in keys_needed.get(selection, [])):
-        st.warning(f"Please enter the required API Key(s) to use the {selection}.");
+    if not all([st.session_state.get(k) for k in ['gemini_key', 'serper_key']]):
+        st.warning("Please enter your Gemini and Serper API Keys in the sidebar to use this page.")
         st.stop()
 
-    if selection == "AI Swimming Coach":
-        render_swimming_page()
-    elif selection == "AI Fitness Trainer":
-        render_fitness_page()
-    elif selection == "AI Driving License Guide":
-        render_driving_license_page()
+    render_lesson_planner_page()
 
 
-if __name__ == "__main__":
-    main()
+class TravelCrew:
+    def __init__(self, model_name, language,origin,destination,duration):
+        os.environ["GOOGLE_API_KEY"] = st.session_state.get('gemini_key', '')
+        os.environ["SERPER_API_KEY"] = st.session_state.get('serper_key', '')
+        self.llm = LLM(model=model_name, temperature=0.7, api_key=os.environ["GOOGLE_API_KEY"])
+        self.language = language
+        self.origin = origin
+        self.destination = destination
+        self.duration = duration
 
-#
+
+    def run_planning_crew(self, transport_prefs, accommodation_prefs):
+        agents = [
+            Agent(role='Transportation Specialist',
+                  goal=f"Find the best and cheapest transportation options from {self.origin} to {self.destination} based on the user's preferences: {', '.join(transport_prefs)}.",
+                  backstory="You are an expert travel agent who specializes in finding the most efficient and cost-effective travel routes.",
+                  llm=self.llm, tools=[SerperDevTool()], verbose=True),
+            Agent(role='Accommodation Specialist',
+                  goal=f"Find the best and cheapest accommodation options in {self.destination} for a {self.duration}-day stay, based on the user's preferences: {', '.join(accommodation_prefs)}. Provide a budget estimate per person and for a couple.",
+                  backstory="You are a travel expert with a knack for finding great deals on places to stay.",
+                  llm=self.llm, tools=[SerperDevTool()], verbose=True),
+            Agent(role='Chief Itinerary Planner & Editor',
+                  goal=f"Compile all the transportation and accommodation information into a single, cohesive travel plan in {self.language}.",
+                  backstory="You are a meticulous travel planner who transforms raw data into a beautiful, actionable itinerary.",
+                  llm=self.llm, verbose=True)
+        ]
+
+        tasks = []
+        if transport_prefs:
+            tasks.append(Task(
+                description=f"Search for the best options for {', '.join(transport_prefs)} from {self.origin} to {self.destination}. Provide a summary including cost, duration, and a booking URL.",
+                agent=agents[0],
+                expected_output="A markdown section with a summary of the best transportation options."))
+        if accommodation_prefs:
+            tasks.append(Task(
+                description=f"Search for the best options for {', '.join(accommodation_prefs)} in {self.destination} for a {self.duration}-day stay. Provide 2-3 top options with price, description, and a booking URL. Include a budget estimate per person and for a couple.",
+                agent=agents[1],
+                expected_output="A markdown section with a summary of the best accommodation options."))
+
+        compile_task = Task(
+            description=f"Combine all travel information into a single, final travel plan in {self.language}. Include a 'Best Travel Tips' section.",
+            agent=agents[2], context=tasks,
+            expected_output="The final, comprehensive travel plan formatted in clear markdown.",
+            output_file="travel_plan.md")
+        tasks.append(compile_task)
+
+        crew = Crew(agents=agents, tasks=tasks, process=Process.sequential, verbose=True)
+        crew.kickoff()
+        with open("travel_plan.md", "r", encoding="utf-8") as f:
+            return f.read()
+
+    def run_activities_crew(self, interests):
+        agents = [
+            Agent(role='Local Tour Guide & Activities Specialist',
+                  goal=f"Create a detailed, day-by-day itinerary of activities in {self.destination} for a {self.duration}-day trip, tailored to the user's interests: {interests}. Find price estimates for each activity.",
+                  backstory=f"You are an expert local guide for {self.destination}. You know all the best attractions, hidden gems, restaurants, and activities, and can create a perfect itinerary for any interest.",
+                  llm=self.llm, tools=[SerperDevTool()], verbose=True),
+            Agent(role='Travel Experience Curator',
+                  goal=f"Refine the itinerary to ensure a logical flow and a memorable experience. Add practical tips and booking information, highlighting any time-sensitive offers.",
+                  backstory="You are a travel experience designer who turns a list of activities into an unforgettable journey. You focus on logistics, pacing, and adding special touches.",
+                  llm=self.llm, verbose=True)
+        ]
+
+        task1 = Task(
+            description=f"Develop a day-by-day itinerary for a {self.duration}-day trip to {self.destination}. If specific interests ('{interests}') are provided, prioritize them. If not, create a balanced itinerary. For each activity, provide a brief description and a price estimate.",
+            agent=agents[0], expected_output="A detailed, day-by-day list of activities with price estimates.")
+        task2 = Task(
+            description=f"Review the itinerary. For any activities that can be booked (like tours, museums, or special restaurants), find and include a direct booking URL. If you find any time-sensitive offers (e.g., 'limited time', 'sells out fast'), highlight them with a warning to book soon. The final output must be in {self.language}.",
+            agent=agents[1], context=[task1],
+            expected_output="The final, comprehensive itinerary with booking links and tips, formatted in clear markdown.",
+            output_file="activities_plan.md")
+
+        crew = Crew(agents=agents, tasks=[task1, task2], process=Process.sequential, verbose=True)
+        crew.kickoff()
+        with open("activities_plan.md", "r", encoding="utf-8") as f:
+            return f.read()
+
+    def run_cruise_crew(self, region, departure_port, duration, cruise_line):
+        agents = [
+            Agent(role='Cruise Deal Specialist',
+                  goal=f"Find the best and cheapest cruise deals for a {duration}-day trip in the {region} region, departing from {departure_port}. Prioritize offers from {cruise_line} if specified.",
+                  backstory="You are an expert cruise travel agent with access to all major cruise line databases. You are a master at finding the best value, including special offers and package deals.",
+                  llm=self.llm, tools=[SerperDevTool()], verbose=True),
+            Agent(role='Cruise Travel Critic',
+                  goal="Analyze the found cruise options and provide a recommendation. Highlight the best deal and provide practical tips for the chosen cruise.",
+                  backstory="You are a seasoned travel critic who has reviewed hundreds of cruises. You know what makes a cruise special and can provide insider tips on how to get the most out of the experience.",
+                  llm=self.llm, verbose=True),
+            Agent(role='Itinerary Editor',
+                  goal=f"Compile all the cruise information into a single, cohesive report in {self.language}.",
+                  backstory="You are a meticulous editor who creates beautiful, easy-to-read travel summaries.",
+                  llm=self.llm, verbose=True)
+        ]
+
+        task1 = Task(
+            description=f"Search for the best cruise deals for a {duration}-day trip in the {region} region, departing from {departure_port}. If the user specified a preferred cruise line ({cruise_line}), focus on that. Find 2-3 top options.",
+            agent=agents[0],
+            expected_output="A list of 2-3 cruise options with details on the ship, itinerary, price, and a booking URL.")
+        task2 = Task(
+            description="Review the cruise options. Select the best value-for-money deal and write a brief review explaining why it's the top choice. Include 3-5 practical tips for the trip (e.g., what to pack, best excursions).",
+            agent=agents[1], context=[task1], expected_output="A detailed recommendation and a list of practical tips.")
+        task3 = Task(
+            description=f"Combine the cruise options and the expert recommendation into a single, final report. The entire report must be in {self.language}.",
+            agent=agents[2], context=[task1, task2],
+            expected_output="The final, comprehensive cruise plan formatted in clear markdown.",
+            output_file="cruise_plan.md")
+
+        crew = Crew(agents=agents, tasks=[task1, task2, task3], process=Process.sequential, verbose=True)
+        crew.kickoff()
+        with open("cruise_plan.md", "r", encoding="utf-8") as f:
+            return f.read()
+
+
+# ==============================================================================
+## 3. Page Rendering Function
+# ==============================================================================
+
+def render_travel_page():
+    st.title("✈️ AI Travel Planner")
+    st.markdown(
+        "Your complete travel planning assistant. Get personalized plans for transport, accommodation, and activities.")
+
+    st.warning(
+        "**Disclaimer:** This AI provides travel suggestions based on real-time searches, but prices and availability can change rapidly. Always double-check details on the booking websites.",
+        icon="❗")
+
+    if 'travel_plan' not in st.session_state: st.session_state.travel_plan = None
+    if 'activities_plan' not in st.session_state: st.session_state.activities_plan = None
+    if 'cruise_plan' not in st.session_state: st.session_state.cruise_plan = None
+
+    available_models = get_available_models(st.session_state.get('gemini_key'))
+   # LANGUAGES = ("English", "German", "French", "Swahili", "Italian", "Spanish", "Portuguese")
+
+    tab1, tab2, tab3 = st.tabs(
+        ["**Transport & Accommodation**", "**Activities & Itinerary**", "**Cruise Planner (Kreuzfahrt)**"])
+
+    with tab1:
+        st.subheader("Find Your Travel & Lodging")
+        with st.form("planning_form"):
+            col1, col2 = st.columns(2)
+            origin = col1.text_input("From (City, Country)", st.session_state.get('origin', "Berlin, Germany"))
+            destination = col2.text_input("To (City, Country)", st.session_state.get('destination', "Paris, France"))
+            duration = st.number_input("Duration of Stay (days)", min_value=1, max_value=30,
+                                       value=st.session_state.get('duration', 7))
+            transport_prefs = st.multiselect("Preferred Transport", ["Flights", "Trains", "Buses"], default=["Flights"])
+            accommodation_prefs = st.multiselect("Preferred Accommodation", ["Hotel", "Hostel", "Camping", "Any"],
+                                                 default=["Hotel"])
+            language = st.selectbox("Language for the Plan:", LANGUAGES, key="plan_lang")
+            selected_model = st.selectbox("Choose AI Model:", available_models,
+                                          key="plan_model") if available_models else None
+
+            if st.form_submit_button("Generate Travel Plan", use_container_width=True):
+                if not all([origin, destination, language, selected_model]):
+                    st.error("Please fill all fields and select a model.")
+                else:
+                    st.session_state.update(origin=origin, destination=destination, duration=duration)
+                    with st.spinner(f"The AI travel agency is planning your trip to {destination}..."):
+                        crew = TravelCrew(selected_model, language, origin, destination, duration)
+                        st.session_state.travel_plan = crew.run_planning_crew(transport_prefs, accommodation_prefs)
+
+        if st.session_state.get('travel_plan'):
+            st.markdown("---")
+            st.header(f"Your Travel Plan: {st.session_state.origin} to {st.session_state.destination}")
+            st.markdown(st.session_state.travel_plan)
+            render_download_buttons(st.session_state.travel_plan,
+                                    f"travel_plan_{st.session_state.destination.replace(' ', '_').lower()}")
+
+    with tab2:
+        st.subheader("Design Your Daily Itinerary")
+        with st.form("activities_form"):
+            st.info(
+                f"Currently planning for a **{st.session_state.get('duration', 7)}-day trip** to **{st.session_state.get('destination', 'N/A')}**.")
+            interests = st.text_input("Enter your interests (optional, comma-separated)",
+                                      placeholder="e.g., hiking, museums, shopping, restaurants, churches")
+            language_act = st.selectbox("Language for the Itinerary:", LANGUAGES, key="act_lang")
+            selected_model_act = st.selectbox("Choose AI Model:", available_models,
+                                              key="act_model") if available_models else None
+
+            if st.form_submit_button("Generate Activities Plan", use_container_width=True):
+                if not all([st.session_state.get('destination'), language_act, selected_model_act]):
+                    st.error("Please ensure trip details are set in the first tab and a model is selected.")
+                else:
+                    with st.spinner(
+                            f"The AI tour guide is creating your itinerary for {st.session_state.destination}..."):
+                        crew = TravelCrew(selected_model_act, language_act, st.session_state.origin,
+                                          st.session_state.destination, st.session_state.duration)
+                        st.session_state.activities_plan = crew.run_activities_crew(interests)
+
+        if st.session_state.get('activities_plan'):
+            st.markdown("---")
+            st.header(f"Your Itinerary for {st.session_state.destination}")
+            st.markdown(st.session_state.activities_plan)
+            render_download_buttons(st.session_state.activities_plan,
+                                    f"itinerary_{st.session_state.destination.replace(' ', '_').lower()}")
+
+    with tab3:
+        st.subheader("Find Your Perfect Cruise")
+        with st.form("cruise_form"):
+            region = st.selectbox("Select Cruise Region:",
+                                  ["Caribbean", "Mediterranean", "Alaska", "Norwegian Fjords", "Hawaii",
+                                   "Mexican Riviera",
+                                   "South America", "Northern Europe & Baltic Sea", "Australia & New Zealand",
+                                   "Asia (Japan & Southeast)", "Panama Canal",
+                                   "Galapagos Islands"])
+            departure_port = st.text_input("Preferred Departure Port (optional)", placeholder="e.g., Miami, Barcelona")
+            duration_cruise = st.slider("Cruise Duration (days)", 3, 14, 7)
+            cruise_line = st.text_input("Preferred Cruise Line (optional)", placeholder="e.g., Royal Caribbean, MSC")
+            language_cruise = st.selectbox("Language for the Plan:", LANGUAGES, key="cruise_lang")
+            selected_model_cruise = st.selectbox("Choose AI Model:", available_models,
+                                                 key="cruise_model") if available_models else None
+
+            if st.form_submit_button("Find Cruise Deals", use_container_width=True):
+                if not selected_model_cruise:
+                    st.error("Please select a model.")
+                else:
+                    with st.spinner(f"The AI cruise specialist is searching for deals in the {region}..."):
+                        crew = TravelCrew(selected_model_cruise, language_cruise, "", "",
+                                          0)  # Origin/Dest not needed for cruise search
+                        st.session_state.cruise_plan = crew.run_cruise_crew(region, departure_port, duration_cruise,
+                                                                            cruise_line)
+
+        if st.session_state.get('cruise_plan'):
+            st.markdown("---")
+            st.header(f"Your Cruise Plan for the {region}")
+            st.markdown(st.session_state.cruise_plan)
+            render_download_buttons(st.session_state.cruise_plan, f"cruise_plan_{region.replace(' ', '_').lower()}")
+
 
 
 
