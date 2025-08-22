@@ -1,5 +1,6 @@
 # main.py
 # Final, unified, and production-ready application code for the AI Health & Fitness Suite.
+import wave
 
 import streamlit as st
 import os
@@ -15,6 +16,24 @@ import docx
 import markdown2
 from main_v2 import  get_available_models, render_download_buttons,LANGUAGES
 
+def calculate_bmi(weight_kg, height_cm):
+    """Calculates BMI from weight in kg and height in cm."""
+    if height_cm == 0:
+        return 0
+    height_m = height_cm / 100
+    bmi = weight_kg / (height_m ** 2)
+    return bmi
+
+def get_bmi_cluster(bmi):
+    """Classifies BMI into a health cluster key."""
+    if bmi < 18.5:
+        return "underweight"
+    elif 18.5 <= bmi < 25:
+        return "normal_weight"
+    elif 25 <= bmi < 30:
+        return "overweight"
+    else:
+        return "obesity"
 
 def parse_json_from_text(text):
     """Safely extracts a JSON object from a string."""
@@ -30,6 +49,16 @@ def parse_json_from_text(text):
     except json.JSONDecodeError:
         st.warning("Could not parse the AI's JSON response. It may not be a clean JSON object.")
         return None
+def pcm_to_wav(pcm_data, channels=1, sample_width=2, sample_rate=24000):
+    """Converts raw PCM data to a WAV file in memory."""
+    buffer = io.BytesIO()
+    with wave.open(buffer, 'wb') as wf:
+        wf.setnchannels(channels)
+        wf.setsampwidth(sample_width)
+        wf.setframerate(sample_rate)
+        wf.writeframes(pcm_data)
+    buffer.seek(0)
+    return buffer.getvalue()
 # ==============================================================================
 ## 2. AI Crew Classes
 # ==============================================================================
@@ -97,8 +126,8 @@ class SwimmingCrew:
             return f.read()
 
 
-class FitnessCrew:
-    def __init__(self, model_name, language, weight, height, goal, country):
+class HomeWorkoutCrew:
+    def __init__(self, model_name, language, weight, height, goal, country, bmi, bmi_cluster_translated):
         os.environ["GOOGLE_API_KEY"] = st.session_state.get('gemini_key', '')
         os.environ["SERPER_API_KEY"] = st.session_state.get('serper_key', '')
         self.llm = LLM(model=model_name, temperature=0.7, api_key=os.environ["GOOGLE_API_KEY"])
@@ -107,71 +136,150 @@ class FitnessCrew:
         self.height = height
         self.goal = goal
         self.country = country
+        self.bmi = bmi
+        self.bmi_cluster_translated = bmi_cluster_translated
 
     def run(self):
         agents = [
             Agent(
                 role='Certified Personal Trainer',
-                goal=f"Create a detailed, day-by-day workout plan for a user with the goal of '{self.goal}'. The user's weight is {self.weight} kg and height is {self.height} cm.",
-                backstory="You are a highly experienced personal trainer who creates safe, effective, and personalized workout plans. You break down routines into daily schedules with clear instructions on exercises, sets, reps, and rest periods.",
+                goal=f"Create a detailed, day-by-day workout plan for a user with the goal of '{self.goal}', considering their BMI is {self.bmi:.1f} ({self.bmi_cluster_translated}).",
+                backstory="You are a highly experienced personal trainer who creates safe, effective, and personalized workout plans. You tailor routines based on a user's BMI and specific goals.",
                 llm=self.llm,
                 verbose=True
             ),
             Agent(
                 role='Sports Nutritionist',
-                goal=f"Develop a complementary nutrition plan to support the user's fitness goal of '{self.goal}'. The plan should consider general dietary habits in {self.country}.",
-                backstory="You are a certified nutritionist who specializes in creating meal plans for athletes and fitness enthusiasts. You provide practical, easy-to-follow dietary advice that aligns with specific fitness goals.",
+                goal=f"Develop a complementary nutrition plan to support the user's fitness goal of '{self.goal}', considering their BMI cluster is '{self.bmi_cluster_translated}'. The plan should consider general dietary habits in {self.country}.",
+                backstory="You are a certified nutritionist who specializes in creating meal plans that are scientifically aligned with a user's BMI and fitness objectives.",
                 llm=self.llm,
                 tools=[SerperDevTool()],
                 verbose=True
             ),
             Agent(
-                role='Sports Psychologist',
-                goal="Provide motivational tips and strategies to help the user stay consistent and overcome mental hurdles.",
-                backstory="You are a sports psychologist who helps athletes build mental toughness and maintain motivation. You provide actionable tips on goal setting, consistency, and building a resilient mindset.",
+                role='Health Advisor',
+                goal=f"Provide specific, actionable recommendations for the user to achieve a normal BMI, based on their current status of '{self.bmi_cluster_translated}'.",
+                backstory="You are a health advisor who provides clear, encouraging advice on lifestyle changes. You explain the importance of a healthy BMI and provide practical steps to achieve it.",
                 llm=self.llm,
                 verbose=True
             ),
             Agent(
                 role='Fitness Content Editor',
-                goal=f"Compile all the workout, nutrition, and motivational advice into a single, cohesive, and easy-to-read fitness plan in {self.language}.",
+                goal=f"Compile all the workout, nutrition, and health advice into a single, cohesive, and easy-to-read fitness plan in {self.language}.",
                 backstory="You are a meticulous editor for a leading fitness magazine. You ensure every plan is well-structured, clearly explained, and motivating for the reader.",
                 llm=self.llm,
                 verbose=True
             )
         ]
         task_workout = Task(
-            description=f"Create a 7-day workout schedule tailored for a user aiming for '{self.goal}'. Specify exercises, duration, sets, and reps for each day. Include warm-up and cool-down routines.",
+            description=f"Create a 7-day workout schedule tailored for a user aiming for '{self.goal}', with a BMI of {self.bmi:.1f} ({self.bmi_cluster_translated}). Specify exercises, duration, sets, and reps for each day.",
             agent=agents[0],
-            expected_output="A detailed markdown table or list outlining the 7-day workout plan."
+            expected_output="A detailed markdown table outlining the 7-day workout plan."
         )
         task_nutrition = Task(
-            description=f"Create a nutrition guideline that supports the goal of '{self.goal}'. Provide examples of breakfast, lunch, dinner, and snacks. Consider common foods available in {self.country}.",
+            description=f"Create a nutrition guideline that supports the goal of '{self.goal}' for a person in the '{self.bmi_cluster_translated}' category. Provide examples of breakfast, lunch, dinner, and snacks.",
             agent=agents[1],
             expected_output="A markdown section with dietary recommendations and sample meal ideas."
         )
-        task_motivation = Task(
-            description="Write a short section with 3-5 powerful motivational tips on how to stay consistent with the fitness plan.",
+        task_bmi_advice = Task(
+            description=f"Write a concluding section titled 'Path to a Healthy BMI'. If the user is not in the 'Normal weight' category, provide 2-3 clear, actionable steps they can take to move towards a healthier BMI (e.g., for 'Overweight', suggest a slight caloric deficit and increased cardio).",
             agent=agents[2],
-            expected_output="A concise, encouraging markdown section with motivational advice."
+            expected_output="A concise, encouraging markdown section with specific recommendations for achieving a normal BMI."
         )
         task_compile = Task(
-            description=f"Combine the workout plan, nutrition guide, and motivational tips into a single, final fitness plan. Format it beautifully in markdown with a main title: 'Your Personalized Fitness Plan for {self.goal}'. The entire guide must be in {self.language}.",
+            description=f"Combine the workout plan, nutrition guide, and BMI advice into a single, final fitness plan. Format it beautifully in markdown with a main title: 'Your Personalized Fitness Plan for {self.goal}'. The entire guide must be in {self.language}.",
             agent=agents[3],
-            context=[task_workout, task_nutrition, task_motivation],
+            context=[task_workout, task_nutrition, task_bmi_advice],
             expected_output="The final, comprehensive fitness plan formatted in clear markdown.",
             output_file="fitness_plan.md"
         )
 
         crew = Crew(
             agents=agents,
-            tasks=[task_workout, task_nutrition, task_motivation, task_compile],
+            tasks=[task_workout, task_nutrition, task_bmi_advice, task_compile],
             process=Process.sequential,
             verbose=True
         )
 
         crew.kickoff()
         with open("fitness_plan.md", "r", encoding="utf-8") as f:
+            return f.read()
+
+
+class FitnessStudioCrew:
+    def __init__(self, model_name, language, bmi, bmi_cluster, goal):
+        os.environ["GOOGLE_API_KEY"] = st.session_state.get('gemini_key', '')
+        self.llm = LLM(model=model_name, temperature=0.7, api_key=os.environ["GOOGLE_API_KEY"])
+        self.language = language
+        self.bmi = bmi
+        self.bmi_cluster = bmi_cluster
+        self.goal = goal
+
+    def run(self):
+        agents = [
+            Agent(
+                role='McFIT Certified Master Trainer',
+                goal=f"Create a detailed, 7-day fitness studio workout plan for a user with a BMI of {self.bmi:.1f} ({self.bmi_cluster}) whose goal is '{self.goal}'.",
+                backstory="You are a Master Trainer with decades of experience at McFIT, Germany's leading fitness chain. You are an expert in designing workout plans that utilize common gym equipment.",
+                llm=self.llm,
+                verbose=True
+            ),
+            Agent(
+                role='Exercise Physiologist',
+                goal="Provide expert instructions and tips for each exercise in the workout plan.",
+                backstory="You are an exercise physiologist who specializes in biomechanics and proper exercise form. You provide clear, concise instructions to maximize effectiveness and prevent injury.",
+                llm=self.llm,
+                verbose=True
+            ),
+            Agent(
+                role='Health Advisor',
+                goal=f"Provide specific, actionable recommendations for the user to achieve a normal BMI, based on their current status of '{self.bmi_cluster}'.",
+                backstory="You are a health advisor who provides clear, encouraging advice on lifestyle changes. You explain the importance of a healthy BMI and provide practical steps to achieve it.",
+                llm=self.llm,
+                verbose=True
+            ),
+            Agent(
+                role='Fitness Content Editor',
+                goal=f"Compile all the workout information into a single, cohesive, and easy-to-read fitness plan in {self.language}.",
+                backstory="You are a meticulous editor for a leading fitness magazine. You ensure every plan is well-structured, clearly explained, and motivating for the reader.",
+                llm=self.llm,
+                verbose=True
+            )
+        ]
+
+        task1 = Task(
+            description=f"Create a 7-day workout schedule focused on '{self.goal}'. For each workout day, list 5-6 exercises using standard gym equipment. Specify duration, sets, reps, and rest periods.",
+            agent=agents[0],
+            expected_output="A detailed markdown table for a 7-day workout plan."
+        )
+        task2 = Task(
+            description="For each exercise in the generated plan, write a short 'How-To' instruction and a 'Pro-Tip' for proper form.",
+            agent=agents[1],
+            context=[task1],
+            expected_output="A list of all exercises from the plan, each with its own 'How-To' and 'Pro-Tip' section."
+        )
+        task3 = Task(
+            description=f"Write a concluding section titled 'Path to a Healthy BMI'. If the user is not in the 'Normal weight' category, provide 2-3 clear, actionable steps they can take to move towards a healthier BMI.",
+            agent=agents[2],
+            expected_output="A concise, encouraging markdown section with specific recommendations for achieving a normal BMI."
+        )
+        task4 = Task(
+            description=f"Combine the 7-day plan, detailed exercise instructions, and BMI advice into a single, final fitness studio plan. Format it beautifully in markdown with a main title: 'Your Fitness Studio Plan: {self.goal}'. The entire guide must be in {self.language}.",
+            agent=agents[3],
+            context=[task1, task2, task3],
+            expected_output="The final, comprehensive fitness studio plan formatted in clear markdown.",
+            output_file="fitness_studio_plan.md"
+        )
+
+        crew = Crew(
+            agents=agents,
+            tasks=[task1, task2, task3, task4],
+            process=Process.sequential,
+            verbose=True
+        )
+
+        crew.kickoff()
+        with open("fitness_studio_plan.md", "r", encoding="utf-8") as f:
             return f.read()
 
 
@@ -291,7 +399,7 @@ def render_swimming_page():
 
 def render_fitness_page():
     st.title("🏋️ AI Fitness Trainer")
-    st.markdown("Get a personalized workout and nutrition plan from an expert AI crew.")
+    st.markdown("Get a personalized workout and nutrition plan from an expert AI crew, tailored to your BMI and goals.")
 
     st.warning(
         """
@@ -304,40 +412,115 @@ def render_fitness_page():
         icon="❗"
     )
 
-    if 'fitness_plan' not in st.session_state:
-        st.session_state.fitness_plan = None
+    tab1, tab2 = st.tabs(["**Home & General Fitness**", "**Fitness Studio Workouts**"])
 
-    available_models = get_available_models(st.session_state.get('gemini_key'))
-    LANGUAGES = ("English", "German", "French", "Swahili", "Italian", "Spanish", "Portuguese")
+    with tab1:
+        st.header("Create Your General Fitness & Nutrition Plan")
+        if 'fitness_plan' not in st.session_state: st.session_state.fitness_plan = None
+        available_models = get_available_models(st.session_state.get('gemini_key'))
+        BMI_TRANSLATIONS = {
+            "English": {"underweight": "Underweight", "normal_weight": "Normal weight", "overweight": "Overweight",
+                        "obesity": "Obesity"},
+            "German": {"underweight": "Untergewicht", "normal_weight": "Normalgewicht", "overweight": "Übergewicht",
+                       "obesity": "Adipositas"},
+            "French": {"underweight": "Insuffisance pondérale", "normal_weight": "Poids normal",
+                       "overweight": "Surpoids", "obesity": "Obésité"},
+            "Spanish": {"underweight": "Bajo peso", "normal_weight": "Peso normal", "overweight": "Sobrepeso",
+                        "obesity": "Obesidad"},
+            "Italian": {"underweight": "Sottopeso", "normal_weight": "Normopeso", "overweight": "Sovrappeso",
+                        "obesity": "Obesità"},
+            "Portuguese": {"underweight": "Abaixo do peso", "normal_weight": "Peso normal", "overweight": "Sobrepeso",
+                           "obesity": "Obesidade"},
+            "Swahili": {"underweight": "Uzito mdogo", "normal_weight": "Uzito wa kawaida",
+                        "overweight": "Uzito uliopitiliza", "obesity": "Unene uliokithiri"}
+        }
+        #LANGUAGES1 = list(BMI_TRANSLATIONS.keys())
 
-    with st.form("fitness_form"):
-        st.header("Tell Us About Your Goals")
-        col1, col2 = st.columns(2)
-        weight = col1.number_input("Your Weight (kg)", min_value=30, max_value=200, value=70)
-        height = col2.number_input("Your Height (cm)", min_value=100, max_value=250, value=175)
+        with st.form("home_fitness_form"):
+            col1, col2 = st.columns(2)
+            weight = col1.number_input("Your Weight (kg)", min_value=30.0, max_value=200.0, value=70.0, step=0.5)
+            height = col2.number_input("Your Height (cm)", min_value=100.0, max_value=250.0, value=175.0, step=0.5)
 
-        goal = st.selectbox("What is your primary fitness goal?",
-                            ["Weight Loss", "Muscle Building", "Six-Pack Abs", "General Fitness & Endurance"])
+            goal = st.selectbox("What is your primary fitness goal?",
+                                ["Weight Loss", "Muscle Building", "General Fitness & Endurance"])
 
-        col3, col4 = st.columns(2)
-        country = col3.text_input("Your Country", placeholder="e.g., USA, Germany")
-        language = col4.selectbox("Language for the Plan:", LANGUAGES)
+            col3, col4 = st.columns(2)
+            country = col3.text_input("Your Country", placeholder="e.g., USA, Germany")
+            language = col4.selectbox("Language for the Plan:", LANGUAGES)
 
-        selected_model = st.selectbox("Choose AI Model:", available_models) if available_models else None
+            selected_model = st.selectbox("Choose AI Model:", available_models) if available_models else None
 
-        if st.form_submit_button("Generate My Fitness Plan", use_container_width=True):
-            if not all([weight, height, goal, country, language, selected_model]):
-                st.error("Please fill all fields and select a model.")
+            if weight > 0 and height > 0:
+                bmi = calculate_bmi(weight, height)
+                bmi_cluster_key = get_bmi_cluster(bmi)
+                bmi_cluster_translated = BMI_TRANSLATIONS.get(language, BMI_TRANSLATIONS["English"]).get(
+                    bmi_cluster_key, "N/A")
+                st.info(f"**Your BMI is: {bmi:.1f}** (Category: **{bmi_cluster_translated}**)")
             else:
-                with st.spinner(f"The AI fitness team is creating your plan for {goal}..."):
-                    crew = FitnessCrew(selected_model, language, weight, height, goal, country)
-                    st.session_state.fitness_plan = crew.run()
+                bmi = 0
+                bmi_cluster_translated = "N/A"
 
-    if st.session_state.get('fitness_plan'):
-        st.markdown("---")
-        st.header(f"Your Personalized Fitness Plan")
-        st.markdown(st.session_state.fitness_plan)
-        render_download_buttons(st.session_state.fitness_plan, f"fitness_plan_{goal.replace(' ', '_').lower()}")
+            if st.form_submit_button("Generate My Fitness Plan", use_container_width=True):
+                if not all([weight, height, goal, country, language, selected_model]):
+                    st.error("Please fill all fields and select a model.")
+                else:
+                    with st.spinner(f"The AI fitness team is creating your plan for {goal}..."):
+                        crew = HomeWorkoutCrew(selected_model, language, weight, height, goal, country, bmi,
+                                               bmi_cluster_translated)
+                        st.session_state.fitness_plan = crew.run()
+
+        if st.session_state.get('fitness_plan'):
+            st.markdown("---")
+            st.header(f"Your Personalized Fitness Plan")
+            st.markdown(st.session_state.fitness_plan)
+            render_download_buttons(st.session_state.fitness_plan, f"fitness_plan_{goal.replace(' ', '_').lower()}")
+
+    with tab2:
+        st.header("Create Your Fitness Studio Workout Plan")
+        if 'studio_plan' not in st.session_state: st.session_state.studio_plan = None
+        available_models = get_available_models(st.session_state.get('gemini_key'))
+
+        with st.form("studio_fitness_form"):
+            col1, col2 = st.columns(2)
+            weight_studio = col1.number_input("Your Weight (kg)", min_value=30.0, max_value=200.0, value=70.0, step=0.5,
+                                              key="studio_weight")
+            height_studio = col2.number_input("Your Height (cm)", min_value=100.0, max_value=250.0, value=175.0,
+                                              step=0.5, key="studio_height")
+
+            goal_studio = st.selectbox("What is your primary workout goal?",
+                                       ["Weight Loss", "Full Body Strength", "Six-Pack Abs", "Chest", "Back", "Legs",
+                                        "Biceps", "Triceps", "Shoulders"])
+
+            col3, col4 = st.columns(2)
+            language_studio = col3.selectbox("Language for the Plan:", LANGUAGES, key="studio_lang")
+            selected_model_studio = col4.selectbox("Choose AI Model:", available_models,
+                                                   key="studio_model") if available_models else None
+
+            if weight_studio > 0 and height_studio > 0:
+                bmi_studio = calculate_bmi(weight_studio, height_studio)
+                bmi_cluster_key_studio = get_bmi_cluster(bmi_studio)
+                bmi_cluster_translated_studio = BMI_TRANSLATIONS.get(language_studio, BMI_TRANSLATIONS["English"]).get(
+                    bmi_cluster_key_studio, "N/A")
+                st.info(f"**Your BMI is: {bmi_studio:.1f}** (Category: **{bmi_cluster_translated_studio}**)")
+            else:
+                bmi_studio = 0
+                bmi_cluster_translated_studio = "N/A"
+
+            if st.form_submit_button("Generate My Studio Plan", use_container_width=True):
+                if not all([weight_studio, height_studio, goal_studio, language_studio, selected_model_studio]):
+                    st.error("Please fill all fields and select a model.")
+                else:
+                    with st.spinner(f"The McFIT AI Master Trainer is designing your studio plan..."):
+                        crew = FitnessStudioCrew(selected_model_studio, language_studio, bmi_studio,
+                                                 bmi_cluster_translated_studio, goal_studio)
+                        st.session_state.studio_plan = crew.run()
+
+        if st.session_state.get('studio_plan'):
+            st.markdown("---")
+            st.header(f"Your Fitness Studio Plan")
+            st.markdown(st.session_state.studio_plan)
+            render_download_buttons(st.session_state.studio_plan,
+                                    f"studio_plan_{goal_studio.replace(' ', '_').lower()}")
 
 
 def render_driving_license_page():
@@ -871,11 +1054,11 @@ class LanguagePracticeCrew:
 
         if practice_type == "Exercises":
             task_desc_grammar = f"Create 5 varied grammar exercises for EACH of the following topics: {', '.join(grammar_topics)}. The exercises should be suitable for a {self.level} learner of {self.target_language} and follow Goethe-Institut standards. The instructions should be in {self.native_language}."
-            task_desc_comprehension = f"Write one short text (approx. 150 words) in {self.target_language} and create 5 multiple-choice questions to test comprehension, following Goethe-Institut standards. Instructions should be in {self.native_language}."
+            task_desc_comprehension = f"Write one short text (approx. 200 words) in {self.target_language} and create 5 multiple-choice questions to test comprehension, following Goethe-Institut standards. Instructions, questions and answers must be   be in {self.target_language}."
             output_filename = "language_exercises.md"
         else:  # Final Exam
-            task_desc_grammar = f"Create a 'Grammar Section' for a {self.level} final exam, following Goethe-Institut standards. It should contain 20-25 challenging questions covering a wide range of grammar topics suitable for this level. Instructions in {self.native_language}."
-            task_desc_comprehension = f"Create a 'Reading Comprehension & Essay' section for a {self.level} final exam, following Goethe-Institut standards. Write one text (approx. 300 words) in {self.target_language}, followed by 5 comprehension questions and one essay prompt. Instructions in {self.native_language}."
+            task_desc_grammar = f"Create a 'Grammar Section' for a {self.level} final exam, following Goethe-Institut standards. It should contain 20-25 challenging questions covering a wide range of grammar topics suitable for this level. Instructions in {self.target_language}."
+            task_desc_comprehension = f"Create a 'Reading Comprehension & Essay' section for a {self.level} final exam, following Goethe-Institut standards. Write one text (approx. 300 words) in {self.target_language}, followed by 5 comprehension questions and one essay prompt. Instructions  and questions in {self.target_language}."
             output_filename = "language_final_exam.md"
 
         task_grammar = Task(description=task_desc_grammar, agent=agents[0],
@@ -904,28 +1087,33 @@ class LanguageListeningCrew:
 
     def run(self, topic):
         agents = [
-            Agent(role='Dialogue Scriptwriter for Language Learning',
-                  goal=f"Create a short, natural-sounding dialogue or monologue in {self.target_language} about {topic}, appropriate for a {self.level} learner.",
-                  backstory="You are an experienced writer for language learning audio courses. You create content that is both educational and engaging, perfectly matching the specified CEFR level.",
-                  llm=self.llm, verbose=True),
-            Agent(role='Goethe-Institut Exam Designer',
-                  goal=f"Create a set of listening comprehension questions based on a provided transcript that meet Goethe-Institut standards for the {self.level} level.",
-                  backstory="You have years of experience designing official Goethe-Zertifikat exams. You know exactly how to formulate questions (e.g., multiple choice, true/false) that accurately test listening skills.",
-                  llm=self.llm, verbose=True)
+            Agent(role='Dialogue Scriptwriter for Language Learning', goal=f"Create a short, natural-sounding two-speaker dialogue in {self.target_language} about {topic}, appropriate for a {self.level} learner. The speakers should be named Speaker A and Speaker B.", backstory="You are an experienced writer for language learning audio courses. You create content that is both educational and engaging, perfectly matching the specified CEFR level.", llm=self.llm, verbose=True),
+            Agent(role='Goethe-Institut Exam Designer', goal=f"Create a set of listening comprehension questions based on a provided transcript that meet Goethe-Institut standards for the {self.level} level.", backstory="You have years of experience designing official Goethe-Zertifikat exams. You know exactly how to formulate questions that accurately test listening skills.", llm=self.llm, verbose=True),
+            Agent(role='Content Compiler', goal="Combine the transcript and questions into a single, structured JSON object.", backstory="You are a meticulous content organizer, ensuring data is perfectly structured for application use.", llm=self.llm, verbose=True)
         ]
-        task_script = Task(
-            description=f"Write a short audio script (approx. 150-200 words for A1/A2, 250-350 for B1/B2, 400+ for C1/C2) in {self.target_language} about {topic}. The language must be natural and appropriate for the {self.level}.",
-            agent=agents[0], expected_output="The full text of the audio script in markdown.", output_file="listening_transcript.md")
-        task_questions = Task(
-            description=f"Based on the provided audio script, create 5-7 listening comprehension questions that meet Goethe-Institut standards for level {self.level}. Include a mix of question types like multiple choice and true/false. Provide a separate answer key. The questions and instructions must be in {self.native_language}.",
-            agent=agents[1], context=[task_script],
-            expected_output=f"A audio script,  complete set of questions and a separate answer key in markdown in {self.target_language} . Well formatted in 3 separate sections: *** Audio script section, Question Section and Anwers sections.",
-            output_file="listening_practice.md")
+        task_script = Task(description=f"Write a short audio script (approx. 150-200 words for A1/A2, 250-300 for B1/B2 and and 400+ for C1/C2) in {self.target_language}   about {topic}. It must be a dialogue between 'Speaker A' and 'Speaker B'.", agent=agents[0], expected_output="The full text of the audio script in markdown, with speaker labels.")
+        task_questions = Task(description=f"Based on the provided audio script, create 10-12  listening comprehension questions that meet Goethe-Institut standards for level {self.level}. Provide a separate answer key. The questions and instructions must be in {self.target_language}.", agent=agents[1], context=[task_script], expected_output="A complete set of questions and a separate answer key in markdown.")
+        task_compile = Task(description="Combine the audio transcript and the questions/answers into a single JSON object. The JSON must have two keys: 'transcript' and 'questions'. The final output MUST be ONLY the raw JSON object.", agent=agents[2], context=[task_script, task_questions], expected_output="A single, clean JSON object with 'transcript' and 'questions' keys.", output_file="listening_practice.json")
 
-        crew = Crew(agents=agents, tasks=[task_script, task_questions], process=Process.sequential, verbose=True)
+        crew = Crew(agents=agents, tasks=[task_script, task_questions, task_compile], process=Process.sequential, verbose=True)
         crew.kickoff()
-        with open("listening_practice.md", "r", encoding="utf-8") as f:
-            return f.read()
+        with open("listening_practice.json", "r", encoding="utf-8") as f:
+            return parse_json_from_text(f.read())
+
+    @staticmethod
+    def generate_audio(tts_model_name, transcript, speaker_configs):
+        try:
+            from main import  genai,types, pcm_to_wav
+            from google import genai as gen
+            from google.genai import types
+            client = gen.Client(api_key=st.session_state.get('gemini_key', ''))
+            response = client.models.generate_content(
+                model=tts_model_name, contents=[transcript],
+                config=types.GenerateContentConfig(response_modalities=["AUDIO"], speech_config=types.SpeechConfig(multi_speaker_voice_config=types.MultiSpeakerVoiceConfig(speaker_voice_configs=speaker_configs)))
+            )
+            return response.candidates[0].content.parts[0].inline_data.data
+        except Exception as e:
+            st.error(f"Audio generation failed: {e}"); return None
 
 class VocabularyCrew:
     def __init__(self, model_name, native_language, target_language, level, scope):
@@ -1042,12 +1230,12 @@ class LanguageComprehensionCrew:
         ]
 
         task_write_text = Task(
-            description=f"Write a text passage of appropriate length (A1/A2: ~150 words, B1/B2: ~300 words, C1/C2: ~500 words) in {self.target_language} about '{self.scope}' for a {self.level} learner.",
+            description=f"Write a text passage of appropriate length (A1/A2: ~200 words, B1/B2: ~400 words, C1/C2: ~500 words) in {self.target_language} about '{self.scope}' for a {self.level} learner.",
             agent=agents[0],
             expected_output="A well-written text passage in markdown format."
         )
         task_create_questions = Task(
-            description=f"Based on the provided text, create 5-7 reading comprehension questions that meet Goethe-Institut standards for level {self.level}. Include a mix of question types. The questions and instructions must be in {self.native_language}.",
+            description=f"Based on the provided text, create 8-10 reading comprehension questions that meet Goethe-Institut standards for level {self.level}. Include a mix of question types. The questions and instructions must be in {self.target_language}.",
             agent=agents[1],
             context=[task_write_text],
             expected_output="A complete set of questions and a separate answer key in markdown."
@@ -1088,7 +1276,7 @@ def render_language_academy_page():
         st.header("Generate a Comprehensive Study Guide")
         if 'language_guide' not in st.session_state: st.session_state.language_guide = None
         available_models = get_available_models(st.session_state.get('gemini_key'))
-        LANGUAGES = ("English", "German", "French", "Swahili", "Italian", "Spanish", "Portuguese")
+       # LANGUAGES = ("English", "German", "French", "Swahili", "Italian", "Spanish", "Portuguese")
 
         with st.form("guide_form"):
             col1, col2 = st.columns(2)
@@ -1117,7 +1305,7 @@ def render_language_academy_page():
         st.header("Build Your Thematic Vocabulary List")
         if 'vocabulary_list' not in st.session_state: st.session_state.vocabulary_list = None
         available_models = get_available_models(st.session_state.get('gemini_key'))
-        LANGUAGES = ("English", "German", "French", "Swahili", "Italian", "Spanish", "Portuguese")
+        #LANGUAGES = ("English", "German", "French", "Swahili", "Italian", "Spanish", "Portuguese")
 
         SCOPES = [
             "Personal Information & Greetings", "Family & Friends", "Numbers, Dates, & Time", "Food & Drink",
@@ -1222,10 +1410,20 @@ def render_language_academy_page():
 
     with tab4:
         st.header("Create a Custom Listening Exercise")
+        from google import genai as gen
+        from google.genai import types
         if 'listening_material' not in st.session_state: st.session_state.listening_material = None
         available_models = get_available_models(st.session_state.get('gemini_key'))
+        tts_models = get_available_models(st.session_state.get('gemini_key'), task="text-to-speech")
+        voices = ["Kore", "Puck", "Chipp", "Sadachbia", "Lyra", "Arpy", "Fable", "Onyx"]
+        SCOPES = [
+            "Personal Information & Greetings", "Family & Friends", "Food & Drink", "At Home",
+            "Daily Routines", "Shopping", "Weather & Seasons", "Health", "Hobbies & Free Time", "Travel & Directions",
+            "Work & Professions", "Education & University", "Technology & The Internet", "Media & News"
+        ]
 
         with st.form("listening_form"):
+            st.subheader("1. Generate Transcript & Questions")
             col1, col2 = st.columns(2)
             native_language_listen = col1.text_input("Your Language", "English", key="listen_native")
             target_language_listen = col2.text_input("Language to Learn", "French", key="listen_target")
@@ -1234,14 +1432,14 @@ def render_language_academy_page():
             level_listen = col3.selectbox("Select Level (CEFR)", ["A1", "A2", "B1", "B2", "C1", "C2"],
                                           key="listen_level")
 
-            use_scope = st.radio("Choose topic source:", ["Select from a list", "Enter a custom topic"],
+            use_scope = st.radio("Choose topic source:", ("Select from a list", "Enter a custom topic"),
                                  key="topic_source")
-            if st.session_state.get("topic_source") == "Select from a list":
+            if use_scope == "Select from a list":
                 topic_listen = st.selectbox("Select a Topic Scope", SCOPES)
             else:
                 topic_listen = st.text_input("Enter a custom topic for the dialogue", "Ordering food at a restaurant")
 
-            selected_model_listen = st.selectbox("Choose AI Model", available_models,
+            selected_model_listen = st.selectbox("Choose AI Model for Script Writing", available_models,
                                                  key="listen_model") if available_models else None
 
             if st.form_submit_button("Generate Listening Practice", use_container_width=True):
@@ -1256,14 +1454,53 @@ def render_language_academy_page():
         if st.session_state.get('listening_material'):
             st.markdown("---")
             st.subheader(f"Your {target_language_listen} ({level_listen}) Listening Practice")
-            st.markdown(st.session_state.listening_material)
-            st.info(
-                "💡 **Pro-Tip:** Copy the transcript text and use the **Text-to-Audio** tool in the **AI Audio Suite** to generate the audio for this exercise!")
-            if st.button(f"🎧 Listen to this  Listening practice"):
-                st.session_state['text_for_audio'] =st.session_state.listening_material
-                st.info("Go to the 'Audio Suite' page to generate the audio.")
-            render_download_buttons(st.session_state.listening_material,
-                                    f"{target_language_listen}_{level_listen}_listening_practice")
+
+            transcript = st.session_state.listening_material.get('transcript', 'No transcript generated.')
+            questions = st.session_state.listening_material.get('questions', 'No questions generated.')
+
+            st.text_area("Audio Transcript (Copy this to generate audio)", transcript, height=150,
+                         key="transcript_text")
+            st.json(questions)
+
+            st.markdown("---")
+            st.subheader("2. Generate Audio for Transcript")
+            with st.form("audio_generation_form"):
+                col1, col2 = st.columns(2)
+                speaker_a_name = col1.text_input("Name for Speaker A", "Speaker A")
+                speaker_a_voice = col2.selectbox(f"Voice for {speaker_a_name}", voices, index=0)
+
+                col3, col4 = st.columns(2)
+                speaker_b_name = col3.text_input("Name for Speaker B", "Speaker B")
+                speaker_b_voice = col4.selectbox(f"Voice for {speaker_b_name}", voices, index=1)
+
+                tts_model = st.selectbox("Choose Audio AI Model", tts_models) if tts_models else None
+
+                if st.form_submit_button("Generate Audio", use_container_width=True):
+                    if not tts_model:
+                        st.error("Please select an audio model.")
+                    else:
+                        with st.spinner("🎙️ The AI is recording your audio..."):
+                            # Replace generic speaker names in transcript with user-defined names for TTS
+                            try:
+                                final_transcript = transcript.replace("Speaker A:", f"{speaker_a_name}:").replace(
+                                    "Speaker B:", f"{speaker_b_name}:")
+
+                                speaker_configs = [
+                                    types.SpeakerVoiceConfig(speaker=speaker_a_name, voice_config=types.VoiceConfig(
+                                        prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name=speaker_a_voice))),
+                                    types.SpeakerVoiceConfig(speaker=speaker_b_name, voice_config=types.VoiceConfig(
+                                        prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name=speaker_b_voice)))
+                                ]
+                                st.session_state['audio_data_l']= LanguageListeningCrew.generate_audio(tts_model, final_transcript,
+                                                                                  speaker_configs)
+                            except Exception as error:
+                                st.error(error)
+                if st.session_state.get('audio_data_l') and  st.session_state.listening_material.get('transcript'):
+                    st.success("Audio Generated!")
+                    wav_bytes = pcm_to_wav(st.session_state.get('audio_data_l'), channels=1, sample_width=2,
+                                           sample_rate=24000)
+                    st.audio(wav_bytes, format='audio/wav')
+
 
     with tab5:
         st.header("Improve Your Reading Comprehension")
