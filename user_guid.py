@@ -121,4 +121,4 @@ def render_user_guide_page():
     </body>
     </html>
     """
-    components.html(html_content, scrolling=False)
+    components.html(html_content, height=1000, width=1200, scrolling=True)
