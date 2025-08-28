@@ -10,6 +10,32 @@ from crewai import Agent, Task, Crew, Process, LLM
 
 from main  import  get_available_models, render_download_buttons,LANGUAGES
 
+st.session_state['SCOPES']=[
+    "Personal Information & Greetings", "Bible", "Christian", "Greetings", "Politics", "Socia Media",
+    "Music", "Film", "Jesus", "Religion", "School", "Climate", "Vacation/ Holiday", "Travel & adventure",
+    "Restuarant", "Small Talk", "Hospital", "Hotel", "Science", "Art", "Nursing", "Home & Household", "Craftsmann",
+    "Family & Friends", "Numbers, Dates, & Time", "Food & Drink",
+    "At Home (Rooms & Furniture)", "Technology", "Film & Series", "Sport", "World & Wonders",
+    "Daily Routines", "Clothing & Shopping", "Weather & Seasons", "The Body & Health", "Hobbies & Free Time",
+    "Basic Travel & Directions",
+    "Work & Professions", "Education & University", "Technology & The Internet", "Media & News",
+    "Environment & Nature",
+    "Culture & Traditions", "Politics & Society", "Feelings & Emotions", "Travel & Tourism (Advanced)",
+    "Health & Fitness",
+    "Business & Finance", "Science & Research", "Law & Justice", "Arts & Literature", "History & Archaeology",
+    "Philosophy & Abstract Concepts"
+]
+st.session_state['GRAMMAR_TOPICS'] = [
+                "Articles (Definite/Indefinite)", "Nouns (Gender/Plurals)", "Present Tense (Regular Verbs & Irregular Verbs)",
+                "Basic Sentence Structure (SVO)",
+                "Personal Pronouns", "Possessive Adjectives", "Prepositions of Place", "Question Formation",
+                "The Verb 'to be'", "The Verb 'to have'",
+                "Past Tenses (e.g., Simple Past, Perfect,Imperfect)", "Future Tenses", "Modal Verbs", "Reflexive Verbs",
+                "Comparative & Superlative",
+                "Relative Clauses", "Conditional Sentences (Type 1 & 2)", "Conjunctions", "The Passive Voice",
+                "Subjunctive Mood", "Conditional Sentences (Type 3)", "Advanced Prepositions",
+                "Complex Sentence Structures", "Idiomatic Expressions", "Participles as Adjectives"
+            ]
 
 def parse_json_from_text(text):
     """Safely extracts a JSON object from a string."""
@@ -152,12 +178,12 @@ class LanguageListeningCrew:
                   llm=self.llm, verbose=True)
         ]
         task_script = Task(
-            description=f"Write a short audio script (approx. 100-150 words for A1/A2, 200-250 for B1/B2, 300+ for C1/C2) in {self.target_language} about {topic}. The language must be natural and appropriate for the {self.level}.",
+            description=f"Write a short audio script (approx. 150-200 words for A1/A2, 250-300 for B1/B2, 400+ for C1/C2) in {self.target_language} about {topic}. The language must be natural and appropriate for the {self.level}.",
             agent=agents[0], expected_output="The full text of the audio script in markdown.")
         task_questions = Task(
-            description=f"Based on the provided audio script, create 5-7 listening comprehension questions that meet Goethe-Institut standards for level {self.level}. Include a mix of question types like multiple choice and true/false. Provide a separate answer key. The questions and instructions must be in {self.native_language}.",
+            description=f"Based on the provided audio script, create 8-10 listening comprehension questions that meet Goethe-Institut standards for level {self.level}. Include a mix of question types like multiple choice and true/false. Provide a separate answer key. The questions and instructions must be in {self.target_language}.",
             agent=agents[1], context=[task_script],
-            expected_output="A complete set of questions and a separate answer key in markdown.",
+            expected_output="A full audio script,complete set of questions and a separate answer key in markdown. You Must provide a full audio script, a complete set of questions and Answers in  a clean Markdown.",
             output_file="listening_practice.md")
 
         crew = Crew(agents=agents, tasks=[task_script, task_questions], process=Process.sequential, verbose=True)
@@ -404,6 +430,9 @@ class DictionaryCrew:
 ## 3. Page Rendering Function
 # ==============================================================================
 
+
+
+
 def render_language_academy_page():
     st.title("🗣️ AI Language Academy")
     st.markdown("Your interactive hub for mastering a new language.")
@@ -423,334 +452,314 @@ def render_language_academy_page():
     with tab1:
         st.header("Generate a Comprehensive Study Guide")
         if 'language_guide' not in st.session_state: st.session_state.language_guide = None
-        available_models = get_available_models(st.session_state.get('gemini_key'))
-        #LANGUAGES = ("English", "German", "French", "Swahili", "Italian", "Spanish", "Portuguese")
+        try:
+            available_models = get_available_models(st.session_state.get('gemini_key'))
+            #LANGUAGES = ("English", "German", "French", "Swahili", "Italian", "Spanish", "Portuguese")
 
-        with st.form("guide_form"):
-            col1, col2 = st.columns(2)
-            native_language = col1.text_input("Your Language", "English", key="guide_native")
-            target_language = col2.text_input("Language to Learn", "French", key="guide_target")
-            col3, col4 = st.columns(2)
-            level = col3.selectbox("Select Your Level (CEFR)", ["A1", "A2", "B1", "B2", "C1", "C2"], key="guide_level")
-            selected_model = col4.selectbox("Choose AI Model", available_models,
-                                            key="guide_model") if available_models else None
+            with st.form("guide_form"):
+                col1, col2 = st.columns(2)
+                native_language = col1.text_input("Your Language", "English", key="guide_native")
+                target_language = col2.text_input("Language to Learn", "French", key="guide_target")
+                col3, col4 = st.columns(2)
+                level = col3.selectbox("Select Your Level (CEFR)", ["A1", "A2", "B1", "B2", "C1", "C2"], key="guide_level")
+                selected_model = col4.selectbox("Choose AI Model", available_models,
+                                                key="guide_model") if available_models else None
 
-            if st.form_submit_button("Generate Study Guide", use_container_width=True):
-                if not all([native_language, target_language, selected_model]):
-                    st.error("Please fill all fields and select a model.")
+                if st.form_submit_button("Generate Study Guide", use_container_width=True):
+                    if not all([native_language, target_language, selected_model]):
+                        st.error("Please fill all fields and select a model.")
+                    else:
+                        with st.spinner(f"Building your {level} {target_language} curriculum..."):
+                            crew = LanguageAcademyCrew(selected_model, native_language, target_language, level)
+                            st.session_state.language_guide = crew.run_guide_crew()
+
+            if st.session_state.get('language_guide'):
+                st.markdown("---")
+                st.subheader(f"Your {target_language} ({level}) Study Guide")
+                st.markdown(st.session_state.language_guide)
+                render_download_buttons(st.session_state.language_guide, f"{target_language}_{level}_guide")
+        except Exception as err1:
+            st.error(err1)
+
+    try:
+        with tab2:
+            st.header("Build Your Thematic Vocabulary List")
+            if 'vocabulary_list' not in st.session_state: st.session_state.vocabulary_list = None
+            available_models = get_available_models(st.session_state.get('gemini_key'))
+            #LANGUAGES = ("English", "German", "French", "Swahili", "Italian", "Spanish", "Portuguese")
+
+
+
+            with st.form("vocab_form"):
+                col1, col2 = st.columns(2)
+                native_language = col1.text_input("Your Language", "English", key="vocab_native")
+                target_language = col2.text_input("Language to Learn", "French", key="vocab_target")
+
+                col3, col4 = st.columns(2)
+                level = col3.selectbox("Select Your Level (CEFR)", ["A1", "A2", "B1", "B2", "C1", "C2"], key="vocab_level")
+                scope = col4.selectbox("Select a Vocabulary Scope", st.session_state['SCOPES'])
+
+                selected_model = st.selectbox("Choose AI Model", available_models,
+                                              key="vocab_model") if available_models else None
+
+                if st.form_submit_button("Generate Vocabulary List", use_container_width=True):
+                    if not all([native_language, target_language, selected_model]):
+                        st.error("Please fill all fields and select a model.")
+                    else:
+                        with st.spinner(f"The AI linguistics team is compiling your vocabulary list for '{scope}'..."):
+                            crew = VocabularyCrew(selected_model, native_language, target_language, level, scope)
+                            st.session_state.vocabulary_list = crew.run()
+
+            if st.session_state.get('vocabulary_list'):
+                st.markdown("---")
+                st.subheader(f"Your {target_language} Vocabulary for '{scope}' ({level})")
+
+                vocab_data = st.session_state.vocabulary_list.get('vocabulary', [])
+                if vocab_data:
+                    df = pd.DataFrame(vocab_data)
+                    if f"{native_language}"=='English':
+                        df.columns = [f"{target_language} Word", f"{native_language} Translation", "English Translation_1",
+                                      f"Explanation in {target_language}"]
+                    else:
+                         df.columns = [f"{target_language} Word", f"{native_language} Translation", "English Translation",
+                                      f"Explanation in {target_language}"]
+
+                    st.dataframe(df)
+
+                    markdown_for_download = df.to_markdown(index=False)
+                    render_download_buttons(markdown_for_download, f"{target_language}_{scope}_vocabulary")
                 else:
-                    with st.spinner(f"Building your {level} {target_language} curriculum..."):
-                        crew = LanguageAcademyCrew(selected_model, native_language, target_language, level)
-                        st.session_state.language_guide = crew.run_guide_crew()
+                    st.warning("Could not display the vocabulary list in a table. Please check the raw output.")
+                    st.json(st.session_state.vocabulary_list)
+    except Exception as erro2:
+        st.error(erro2)
 
-        if st.session_state.get('language_guide'):
-            st.markdown("---")
-            st.subheader(f"Your {target_language} ({level}) Study Guide")
-            st.markdown(st.session_state.language_guide)
-            render_download_buttons(st.session_state.language_guide, f"{target_language}_{level}_guide")
+    try:
+        with tab3:
+            st.header("Master Specific Grammar Topics")
+            if 'grammar_guide' not in st.session_state: st.session_state.grammar_guide = None
+            available_models = get_available_models(st.session_state.get('gemini_key'))
+            #LANGUAGES = ("English", "German", "French", "Swahili", "Italian", "Spanish", "Portuguese")
 
-    with tab2:
-        st.header("Build Your Thematic Vocabulary List")
-        if 'vocabulary_list' not in st.session_state: st.session_state.vocabulary_list = None
-        available_models = get_available_models(st.session_state.get('gemini_key'))
-        #LANGUAGES = ("English", "German", "French", "Swahili", "Italian", "Spanish", "Portuguese")
+            with st.form("grammar_form"):
+                col1, col2 = st.columns(2)
+                native_language = col1.text_input("Your Language", "English", key="gram_native")
+                target_language = col2.text_input("Language to Learn", "German", key="gram_target")
 
-        SCOPES = [
-            "Personal Information & Greetings", "Family & Friends", "Numbers, Dates, & Time", "Food & Drink",
-            "At Home (Rooms & Furniture)",
-            "Daily Routines", "Clothing & Shopping", "Weather & Seasons", "The Body & Health", "Hobbies & Free Time",
-            "Basic Travel & Directions",
-            "Work & Professions", "Education & University", "Technology & The Internet", "Media & News",
-            "Environment & Nature",
-            "Culture & Traditions", "Politics & Society", "Feelings & Emotions", "Travel & Tourism (Advanced)",
-            "Health & Fitness",
-            "Business & Finance", "Science & Research", "Law & Justice", "Arts & Literature", "History & Archaeology",
-            "Philosophy & Abstract Concepts"
-        ]
+                level = st.selectbox("Select Your Proficiency Level (CEFR)", ["A1", "A2", "B1", "B2", "C1", "C2"],
+                                     key="gram_level")
+                selected_topics = st.multiselect("Select Grammar Topics to Study", st.session_state['GRAMMAR_TOPICS'],
+                                                 default=["Articles (Definite/Indefinite)",
+                                                          "Present Tense (Regular Verbs & Irregular Verbs)"])
 
-        with st.form("vocab_form"):
-            col1, col2 = st.columns(2)
-            native_language = col1.text_input("Your Language", "English", key="vocab_native")
-            target_language = col2.text_input("Language to Learn", "French", key="vocab_target")
+                selected_model = st.selectbox("Choose AI Model", available_models,
+                                              key="gram_model") if available_models else None
 
-            col3, col4 = st.columns(2)
-            level = col3.selectbox("Select Your Level (CEFR)", ["A1", "A2", "B1", "B2", "C1", "C2"], key="vocab_level")
-            scope = col4.selectbox("Select a Vocabulary Scope", SCOPES)
+                if st.form_submit_button("Generate Grammar Guide", use_container_width=True):
+                    if not all([native_language, target_language, selected_model, selected_topics]):
+                        st.error("Please fill all fields and select at least one grammar topic.")
+                    else:
+                        with st.spinner(f"The AI grammar experts are creating your guide..."):
+                            crew = GrammarCrew(selected_model, native_language, target_language, level, selected_topics)
+                            st.session_state.grammar_guide = crew.run()
 
-            selected_model = st.selectbox("Choose AI Model", available_models,
-                                          key="vocab_model") if available_models else None
-
-            if st.form_submit_button("Generate Vocabulary List", use_container_width=True):
-                if not all([native_language, target_language, selected_model]):
-                    st.error("Please fill all fields and select a model.")
-                else:
-                    with st.spinner(f"The AI linguistics team is compiling your vocabulary list for '{scope}'..."):
-                        crew = VocabularyCrew(selected_model, native_language, target_language, level, scope)
-                        st.session_state.vocabulary_list = crew.run()
-
-        if st.session_state.get('vocabulary_list'):
-            st.markdown("---")
-            st.subheader(f"Your {target_language} Vocabulary for '{scope}' ({level})")
-
-            vocab_data = st.session_state.vocabulary_list.get('vocabulary', [])
-            if vocab_data:
-                df = pd.DataFrame(vocab_data)
-                df.columns = [f"{target_language} Word", f"{native_language} Translation", "English Translation",
-                              f"Explanation in {target_language}"]
-                st.dataframe(df)
-
-                markdown_for_download = df.to_markdown(index=False)
-                render_download_buttons(markdown_for_download, f"{target_language}_{scope}_vocabulary")
-            else:
-                st.warning("Could not display the vocabulary list in a table. Please check the raw output.")
-                st.json(st.session_state.vocabulary_list)
-
-    with tab3:
-        st.header("Master Specific Grammar Topics")
-        if 'grammar_guide' not in st.session_state: st.session_state.grammar_guide = None
-        available_models = get_available_models(st.session_state.get('gemini_key'))
-        #LANGUAGES = ("English", "German", "French", "Swahili", "Italian", "Spanish", "Portuguese")
-        GRAMMAR_TOPICS = [
-            "Articles (Definite/Indefinite)", "Nouns (Gender/Plurals)", "Present Tense (Regular Verbs)",
-            "Basic Sentence Structure (SVO)",
-            "Personal Pronouns", "Possessive Adjectives", "Prepositions of Place", "Question Formation",
-            "The Verb 'to be'", "The Verb 'to have'",
-            "Past Tenses (e.g., Simple Past, Perfect)", "Future Tenses", "Modal Verbs", "Reflexive Verbs",
-            "Comparative & Superlative",
-            "Relative Clauses", "Conditional Sentences (Type 1 & 2)", "Conjunctions", "The Passive Voice",
-            "Subjunctive Mood", "Conditional Sentences (Type 3)", "Advanced Prepositions",
-            "Complex Sentence Structures", "Idiomatic Expressions", "Participles as Adjectives"
-        ]
-
-        with st.form("grammar_form"):
-            col1, col2 = st.columns(2)
-            native_language = col1.text_input("Your Language", "English", key="gram_native")
-            target_language = col2.text_input("Language to Learn", "German", key="gram_target")
-
-            level = st.selectbox("Select Your Proficiency Level (CEFR)", ["A1", "A2", "B1", "B2", "C1", "C2"],
-                                 key="gram_level")
-            selected_topics = st.multiselect("Select Grammar Topics to Study", GRAMMAR_TOPICS,
-                                             default=["Articles (Definite/Indefinite)",
-                                                      "Present Tense (Regular Verbs)"])
-
-            selected_model = st.selectbox("Choose AI Model", available_models,
-                                          key="gram_model") if available_models else None
-
-            if st.form_submit_button("Generate Grammar Guide", use_container_width=True):
-                if not all([native_language, target_language, selected_model, selected_topics]):
-                    st.error("Please fill all fields and select at least one grammar topic.")
-                else:
-                    with st.spinner(f"The AI grammar experts are creating your guide..."):
-                        crew = GrammarCrew(selected_model, native_language, target_language, level, selected_topics)
-                        st.session_state.grammar_guide = crew.run()
-
-        if st.session_state.get('grammar_guide'):
-            st.markdown("---")
-            st.subheader(f"Your {target_language} Grammar Guide ({level})")
-            st.markdown(st.session_state.grammar_guide)
-            render_download_buttons(st.session_state.grammar_guide, f"{target_language}_grammar_guide")
+            if st.session_state.get('grammar_guide'):
+                st.markdown("---")
+                st.subheader(f"Your {target_language} Grammar Guide ({level})")
+                st.markdown(st.session_state.grammar_guide)
+                render_download_buttons(st.session_state.grammar_guide, f"{target_language}_grammar_guide")
+    except Exception as error3:
+        st.error(error3)
 
     with tab4:
-        st.header("Master Verb Conjugations and Tenses")
-        if 'verb_guide' not in st.session_state: st.session_state.verb_guide = None
-        available_models = get_available_models(st.session_state.get('gemini_key'))
-        #LANGUAGES = ("English", "German", "French", "Swahili", "Italian", "Spanish", "Portuguese")
+        try:
+            st.header("Master Verb Conjugations and Tenses")
+            if 'verb_guide' not in st.session_state: st.session_state.verb_guide = None
+            available_models = get_available_models(st.session_state.get('gemini_key'))
+            #LANGUAGES = ("English", "German", "French", "Swahili", "Italian", "Spanish", "Portuguese")
 
-        with st.form("verb_form"):
-            col1, col2 = st.columns(2)
-            native_language = col1.text_input("Your Language", "English", key="verb_native")
-            target_language = col2.text_input("Language to Learn", "French", key="verb_target")
+            with st.form("verb_form"):
+                col1, col2 = st.columns(2)
+                native_language = col1.text_input("Your Language", "English", key="verb_native")
+                target_language = col2.text_input("Language to Learn", "French", key="verb_target")
 
-            level = st.selectbox("Select Your Proficiency Level (CEFR)", ["A1", "A2", "B1", "B2", "C1", "C2"],
-                                 key="verb_level")
-            verb_input = st.text_input("Enter a specific verb to analyze (optional)",
-                                       placeholder="e.g., finir, machen, to be")
+                level = st.selectbox("Select Your Proficiency Level (CEFR)", ["A1", "A2", "B1", "B2", "C1", "C2"],
+                                     key="verb_level")
+                verb_input = st.text_input("Enter a specific verb to analyze (optional)",
+                                           placeholder="e.g., finir, machen, to be")
 
-            selected_model = st.selectbox("Choose AI Model", available_models,
-                                          key="verb_model") if available_models else None
+                selected_model = st.selectbox("Choose AI Model", available_models,
+                                              key="verb_model") if available_models else None
 
-            if st.form_submit_button("Generate Verb Guide", use_container_width=True):
-                if not all([native_language, target_language, selected_model]):
-                    st.error("Please fill all fields and select a model.")
-                else:
-                    with st.spinner(f"The AI linguistics team is preparing your verb guide..."):
-                        crew = VerbConjugatorCrew(selected_model, native_language, target_language, level)
-                        st.session_state.verb_guide = crew.run(verb_input if verb_input else None)
+                if st.form_submit_button("Generate Verb Guide", use_container_width=True):
+                    if not all([native_language, target_language, selected_model]):
+                        st.error("Please fill all fields and select a model.")
+                    else:
+                        with st.spinner(f"The AI linguistics team is preparing your verb guide..."):
+                            crew = VerbConjugatorCrew(selected_model, native_language, target_language, level)
+                            st.session_state.verb_guide = crew.run(verb_input if verb_input else None)
 
-        if st.session_state.get('verb_guide'):
-            st.markdown("---")
-            st.subheader(f"Your {target_language} Verb Guide")
-            st.markdown(st.session_state.verb_guide)
-            render_download_buttons(st.session_state.verb_guide, f"{target_language}_verb_guide")
+            if st.session_state.get('verb_guide'):
+                st.markdown("---")
+                st.subheader(f"Your {target_language} Verb Guide")
+                st.markdown(st.session_state.verb_guide)
+                render_download_buttons(st.session_state.verb_guide, f"{target_language}_verb_guide")
+        except Exception as error4:
+            st.error(error4)
 
     with tab5:
-        st.header("Create a Custom Listening Exercise")
-        if 'listening_material' not in st.session_state: st.session_state.listening_material = None
-        available_models = get_available_models(st.session_state.get('gemini_key'))
+        try:
+            st.header("Create a Custom Listening Exercise")
+            if 'listening_material' not in st.session_state: st.session_state.listening_material = None
+            available_models = get_available_models(st.session_state.get('gemini_key'))
 
-        with st.form("listening_form"):
-            col1, col2 = st.columns(2)
-            native_language_listen = col1.text_input("Your Language", "English", key="listen_native")
-            target_language_listen = col2.text_input("Language to Learn", "French", key="listen_target")
+            with st.form("listening_form"):
+                col1, col2 = st.columns(2)
+                native_language_listen = col1.text_input("Your Language", "English", key="listen_native")
+                target_language_listen = col2.text_input("Language to Learn", "French", key="listen_target")
 
-            col3, col4 = st.columns(2)
-            level_listen = col3.selectbox("Select Level (CEFR)", ["A1", "A2", "B1", "B2", "C1", "C2"],
-                                          key="listen_level")
+                col3, col4 = st.columns(2)
+                level_listen = col3.selectbox("Select Level (CEFR)", ["A1", "A2", "B1", "B2", "C1", "C2"],
+                                              key="listen_level")
 
-            use_scope = st.radio("Choose topic source:", ("Select from a list", "Enter a custom topic"),
-                                 key="topic_source")
-            if use_scope == "Select from a list":
-                topic_listen = st.selectbox("Select a Topic Scope", SCOPES)
-            else:
-                topic_listen = st.text_input("Enter a custom topic for the dialogue", "Ordering food at a restaurant")
-
-            selected_model_listen = st.selectbox("Choose AI Model", available_models,
-                                                 key="listen_model") if available_models else None
-
-            if st.form_submit_button("Generate Listening Practice", use_container_width=True):
-                if not all([native_language_listen, target_language_listen, selected_model_listen, topic_listen]):
-                    st.error("Please fill all fields and select a model.")
+                use_scope = st.radio("Choose topic source:", ("Select from a list", "Enter a custom topic"),
+                                     key="topic_source")
+                if use_scope == "Select from a list":
+                    topic_listen = st.selectbox("Select a Topic Scope",  st.session_state['SCOPES'])
                 else:
-                    with st.spinner("The AI is creating your listening exercise..."):
-                        crew = LanguageListeningCrew(selected_model_listen, native_language_listen,
-                                                     target_language_listen, level_listen)
-                        st.session_state.listening_material = crew.run(topic_listen)
+                    topic_listen = st.text_input("Enter a custom topic for the dialogue", "Ordering food at a restaurant")
 
-        if st.session_state.get('listening_material'):
-            st.markdown("---")
-            st.subheader(f"Your {target_language_listen} ({level_listen}) Listening Practice")
-            st.markdown(st.session_state.listening_material)
-            st.info(
-                "💡 **Pro-Tip:** Copy the transcript text and use the **Text-to-Audio** tool in the **AI Audio Suite** to generate the audio for this exercise!")
-            render_download_buttons(st.session_state.listening_material,
-                                    f"{target_language_listen}_{level_listen}_listening_practice")
+                selected_model_listen = st.selectbox("Choose AI Model", available_models,
+                                                     key="listen_model") if available_models else None
+
+                if st.form_submit_button("Generate Listening Practice", use_container_width=True):
+                    if not all([native_language_listen, target_language_listen, selected_model_listen, topic_listen]):
+                        st.error("Please fill all fields and select a model.")
+                    else:
+                        with st.spinner("The AI is creating your listening exercise..."):
+                            crew = LanguageListeningCrew(selected_model_listen, native_language_listen,
+                                                         target_language_listen, level_listen)
+                            st.session_state.listening_material = crew.run(topic_listen)
+
+            if st.session_state.get('listening_material'):
+                st.markdown("---")
+                st.subheader(f"Your {target_language_listen} ({level_listen}) Listening Practice")
+                st.markdown(st.session_state.listening_material)
+                st.info(
+                    "💡 **Pro-Tip:** Copy the transcript text and use the **Text-to-Audio** tool in the **AI Audio Suite** to generate the audio for this exercise!")
+                render_download_buttons(st.session_state.listening_material,
+                                        f"{target_language_listen}_{level_listen}_listening_practice")
+        except Exception as error5:
+            st.error(error5)
 
     with tab6:
         st.header("Improve Your Reading Comprehension")
         if 'comprehension_material' not in st.session_state: st.session_state.comprehension_material = None
         available_models = get_available_models(st.session_state.get('gemini_key'))
         LANGUAGES = ("English", "German", "French", "Swahili", "Italian", "Spanish", "Portuguese")
-        SCOPES = [
-            "Personal Information & Greetings", "Family & Friends", "Numbers, Dates, & Time", "Food & Drink",
-            "At Home (Rooms & Furniture)",
-            "Daily Routines", "Clothing & Shopping", "Weather & Seasons", "The Body & Health", "Hobbies & Free Time",
-            "Basic Travel & Directions",
-            "Work & Professions", "Education & University", "Technology & The Internet", "Media & News",
-            "Environment & Nature",
-            "Culture & Traditions", "Politics & Society", "Feelings & Emotions", "Travel & Tourism (Advanced)",
-            "Health & Fitness",
-            "Business & Finance", "Science & Research", "Law & Justice", "Arts & Literature", "History & Archaeology",
-            "Philosophy & Abstract Concepts"
-        ]
 
-        with st.form("comprehension_form"):
-            col1, col2 = st.columns(2)
-            native_language = col1.text_input("Your Language", "English", key="comp_native")
-            target_language = col2.text_input("Language to Learn", "German", key="comp_target")
+        try:
+            with st.form("comprehension_form"):
+                col1, col2 = st.columns(2)
+                native_language = col1.text_input("Your Language", "English", key="comp_native")
+                target_language = col2.text_input("Language to Learn", "German", key="comp_target")
 
-            col3, col4 = st.columns(2)
-            level = col3.selectbox("Select Your Level (CEFR)", ["A1", "A2", "B1", "B2", "C1", "C2"], key="comp_level")
-            scope = col4.selectbox("Select a Topic for the Text", SCOPES)
+                col3, col4 = st.columns(2)
+                level = col3.selectbox("Select Your Level (CEFR)", ["A1", "A2", "B1", "B2", "C1", "C2"], key="comp_level")
+                scope = col4.selectbox("Select a Topic for the Text", st.session_state['SCOPES'])
 
-            selected_model = st.selectbox("Choose AI Model", available_models,
-                                          key="comp_model") if available_models else None
+                selected_model = st.selectbox("Choose AI Model", available_models,
+                                              key="comp_model") if available_models else None
 
-            if st.form_submit_button("Generate Reading Exercise", use_container_width=True):
-                if not all([native_language, target_language, selected_model]):
-                    st.error("Please fill all fields and select a model.")
-                else:
-                    with st.spinner(f"The AI is writing your reading comprehension exercise..."):
-                        crew = LanguageComprehensionCrew(selected_model, native_language, target_language, level, scope)
-                        st.session_state.comprehension_material = crew.run()
+                if st.form_submit_button("Generate Reading Exercise", use_container_width=True):
+                    if not all([native_language, target_language, selected_model]):
+                        st.error("Please fill all fields and select a model.")
+                    else:
+                        with st.spinner(f"The AI is writing your reading comprehension exercise..."):
+                            crew = LanguageComprehensionCrew(selected_model, native_language, target_language, level, scope)
+                            st.session_state.comprehension_material = crew.run()
 
-        if st.session_state.get('comprehension_material'):
-            st.markdown("---")
-            st.subheader(f"Your {target_language} Reading Comprehension Exercise")
-            st.markdown(st.session_state.comprehension_material)
-            render_download_buttons(st.session_state.comprehension_material,
-                                    f"{target_language}_reading_{scope.replace(' ', '_').lower()}")
+            if st.session_state.get('comprehension_material'):
+                st.markdown("---")
+                st.subheader(f"Your {target_language} Reading Comprehension Exercise")
+                st.markdown(st.session_state.comprehension_material)
+                render_download_buttons(st.session_state.comprehension_material,
+                                        f"{target_language}_reading_{scope.replace(' ', '_').lower()}")
+        except Exception as error6:
+            st.error(error6)
 
     with tab7:
-        st.header("Create Custom Exercises or a Final Exam")
-        if 'practice_material' not in st.session_state: st.session_state.practice_material = None
-        available_models = get_available_models(st.session_state.get('gemini_key'))
+        try:
+            st.header("Create Custom Exercises or a Final Exam")
+            if 'practice_material' not in st.session_state: st.session_state.practice_material = None
+            available_models = get_available_models(st.session_state.get('gemini_key'))
 
-        with st.form("practice_form"):
-            col1, col2 = st.columns(2)
-            native_language_prac = col1.text_input("Your Language", "English", key="prac_native")
-            target_language_prac = col2.text_input("Language to Learn", "French", key="prac_target")
+            with st.form("practice_form"):
+                col1, col2 = st.columns(2)
+                native_language_prac = col1.text_input("Your Language", "English", key="prac_native")
+                target_language_prac = col2.text_input("Language to Learn", "French", key="prac_target")
 
-            col3, col4 = st.columns(2)
-            level_prac = col3.selectbox("Select Level (CEFR)", ["A1", "A2", "B1", "B2", "C1", "C2"], key="prac_level")
-            practice_type = col4.selectbox("Select Practice Type", ["Exercises", "Final Exam"])
+                col3, col4 = st.columns(2)
+                level_prac = col3.selectbox("Select Level (CEFR)", ["A1", "A2", "B1", "B2", "C1", "C2"], key="prac_level")
+                practice_type = col4.selectbox("Select Practice Type", ["Exercises", "Final Exam"])
 
-            # REFINED: Conditional UI for grammar topic selection
-            grammar_topics_selection = []
-            if practice_type == "Exercises":
-                grammar_topics_selection = st.multiselect("Select Grammar Topics for Exercises", GRAMMAR_TOPICS,
-                                                          default=["Present Tense (Regular Verbs)"])
+                # REFINED: Conditional UI for grammar topic selection
+                grammar_topics_selection = []
+                if practice_type == "Exercises":
+                    grammar_topics_selection = st.multiselect("Select Grammar Topics for Exercises", st.session_state['GRAMMAR_TOPICS'],
+                                                              default=["Present Tense (Regular Verbs & Irregular Verbs)"])
 
-            selected_model_prac = st.selectbox("Choose AI Model", available_models,
-                                               key="prac_model") if available_models else None
+                selected_model_prac = st.selectbox("Choose AI Model", available_models,
+                                                   key="prac_model") if available_models else None
 
-            if st.form_submit_button(f"Generate {practice_type}", use_container_width=True):
-                if not all([native_language_prac, target_language_prac, selected_model_prac]):
-                    st.error("Please fill all fields and select a model.")
-                elif practice_type == "Exercises" and not grammar_topics_selection:
-                    st.error("Please select at least one grammar topic for the exercises.")
-                else:
-                    with st.spinner(f"The AI Exam Committee is preparing your {practice_type}..."):
-                        crew = LanguagePracticeCrew(selected_model_prac, native_language_prac, target_language_prac,
-                                                    level_prac)
-                        st.session_state.practice_material = crew.run(practice_type, grammar_topics_selection)
+                if st.form_submit_button(f"Generate {practice_type}", use_container_width=True):
+                    if not all([native_language_prac, target_language_prac, selected_model_prac]):
+                        st.error("Please fill all fields and select a model.")
+                    elif practice_type == "Exercises" and not grammar_topics_selection:
+                        st.error("Please select at least one grammar topic for the exercises.")
+                    else:
+                        with st.spinner(f"The AI Exam Committee is preparing your {practice_type}..."):
+                            crew = LanguagePracticeCrew(selected_model_prac, native_language_prac, target_language_prac,
+                                                        level_prac)
+                            st.session_state.practice_material = crew.run(practice_type, grammar_topics_selection)
 
-        if st.session_state.get('practice_material'):
-            st.markdown("---")
-            st.subheader(f"Your {target_language_prac} ({level_prac}) {practice_type}")
-            st.markdown(st.session_state.practice_material)
-            render_download_buttons(st.session_state.practice_material,
-                                    f"{target_language_prac}_{level_prac}_{practice_type}")
+            if st.session_state.get('practice_material'):
+                st.markdown("---")
+                st.subheader(f"Your {target_language_prac} ({level_prac}) {practice_type}")
+                st.markdown(st.session_state.practice_material)
+                render_download_buttons(st.session_state.practice_material,
+                                        f"{target_language_prac}_{level_prac}_{practice_type}")
+        except Exception as error7:
+            st.error(error7)
 
     with tab8:
         st.header("Explore the Dictionary")
-        if 'dictionary_entry' not in st.session_state: st.session_state.dictionary_entry = None
-        available_models = get_available_models(st.session_state.get('gemini_key'))
+        try:
+            if 'dictionary_entry' not in st.session_state: st.session_state.dictionary_entry = None
+            available_models = get_available_models(st.session_state.get('gemini_key'))
 
-        with st.form("dictionary_form"):
-            target_language = st.text_input("Language of the word", "English", key="dict_lang")
-            word_to_define = st.text_input("Enter a word to define",
-                                           placeholder="e.g., serendipity, serendipia, Zufallsfund")
-            selected_model = st.selectbox("Choose AI Model", available_models,
-                                          key="dict_model") if available_models else None
+            with st.form("dictionary_form"):
+                target_language = st.text_input("Language of the word", "English", key="dict_lang")
+                word_to_define = st.text_input("Enter a word to define",
+                                               placeholder="e.g., serendipity, serendipia, Zufallsfund")
+                selected_model = st.selectbox("Choose AI Model", available_models,
+                                              key="dict_model") if available_models else None
 
-            if st.form_submit_button("Define Word", use_container_width=True):
-                if not all([word_to_define, selected_model]):
-                    st.error("Please enter a word and select a model.")
-                else:
-                    with st.spinner(f"The AI lexicographer is researching '{word_to_define}'..."):
-                        crew = DictionaryCrew(selected_model, target_language)
-                        st.session_state.dictionary_entry = crew.run(word_to_define)
+                if st.form_submit_button("Define Word", use_container_width=True):
+                    if not all([word_to_define, selected_model]):
+                        st.error("Please enter a word and select a model.")
+                    else:
+                        with st.spinner(f"The AI lexicographer is researching '{word_to_define}'..."):
+                            crew = DictionaryCrew(selected_model, target_language)
+                            st.session_state.dictionary_entry = crew.run(word_to_define)
 
-        if st.session_state.get('dictionary_entry'):
-            st.markdown("---")
-            st.subheader(f"Dictionary Entry for '{word_to_define}'")
-            st.markdown(st.session_state.dictionary_entry)
-            render_download_buttons(st.session_state.dictionary_entry, f"dictionary_{word_to_define}")
+            if st.session_state.get('dictionary_entry'):
+                st.markdown("---")
+                st.subheader(f"Dictionary Entry for '{word_to_define}'")
+                st.markdown(st.session_state.dictionary_entry)
+                render_download_buttons(st.session_state.dictionary_entry, f"dictionary_{word_to_define}")
+        except Exception as error8:
+            st.error(error8)
 
 
-# ==============================================================================
-## This block allows the file to be run standalone for testing
-# ==============================================================================
-if __name__ == '__main__':
-    st.set_page_config(page_title="AI Language Academy", layout="wide")
-
-    st.sidebar.title("🔐 Central Configuration")
-    st.session_state['gemini_key'] = st.sidebar.text_input("Google Gemini API Key", type="password",
-                                                           value=st.session_state.get('gemini_key', ''))
-
-    if not st.session_state.get('gemini_key'):
-        st.warning("Please enter your Gemini API Key in the sidebar to use this page.")
-        st.stop()
-
-    render_language_academy_page()
 
