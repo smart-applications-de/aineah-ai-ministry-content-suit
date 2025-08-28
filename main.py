@@ -113,6 +113,32 @@ gemini_supported_languages = (
     "Vietnamese"
 )
 LANGUAGES=gemini_supported_languages
+st.session_state['SCOPES']=[
+    "Personal Information & Greetings", "Bible", "Christian", "Greetings", "Politics", "Socia Media",
+    "Music", "Film", "Jesus", "Religion", "School", "Climate", "Vacation/ Holiday", "Travel & adventure",
+    "Restuarant", "Small Talk", "Hospital", "Hotel", "Science", "Art", "Nursing", "Home & Household", "Craftsmann",
+    "Family & Friends", "Numbers, Dates, & Time", "Food & Drink",
+    "At Home (Rooms & Furniture)", "Technology", "Film & Series", "Sport", "World & Wonders",
+    "Daily Routines", "Clothing & Shopping", "Weather & Seasons", "The Body & Health", "Hobbies & Free Time",
+    "Basic Travel & Directions",
+    "Work & Professions", "Education & University", "Technology & The Internet", "Media & News",
+    "Environment & Nature",
+    "Culture & Traditions", "Politics & Society", "Feelings & Emotions", "Travel & Tourism (Advanced)",
+    "Health & Fitness",
+    "Business & Finance", "Science & Research", "Law & Justice", "Arts & Literature", "History & Archaeology",
+    "Philosophy & Abstract Concepts"
+]
+st.session_state['GRAMMAR_TOPICS'] = [
+                "Articles (Definite/Indefinite)", "Nouns (Gender/Plurals)", "Present Tense (Regular Verbs & Irregular Verbs)",
+                "Basic Sentence Structure (SVO)",
+                "Personal Pronouns", "Possessive Adjectives", "Prepositions of Place", "Question Formation",
+                "The Verb 'to be'", "The Verb 'to have'",
+                "Past Tenses (e.g., Simple Past, Perfect,Imperfect)", "Future Tenses", "Modal Verbs", "Reflexive Verbs",
+                "Comparative & Superlative",
+                "Relative Clauses", "Conditional Sentences (Type 1 & 2)", "Conjunctions", "The Passive Voice",
+                "Subjunctive Mood", "Conditional Sentences (Type 3)", "Advanced Prepositions",
+                "Complex Sentence Structures", "Idiomatic Expressions", "Participles as Adjectives"
+            ]
 
 # ==============================================================================
 ## 1. Helper Functions
