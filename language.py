@@ -651,7 +651,7 @@ def render_language_academy_page():
                 use_scope = st.radio("Choose topic source:", ("Select from a list", "Enter a custom topic"),
                                      key="topic_source")
                 if use_scope == "Select from a list":
-                    topic_listen = st.selectbox("Select a Topic Scope", SCOPES)
+                    topic_listen = st.selectbox("Select a Topic Scope", st.session_state['SCOPES'])
                 else:
                     topic_listen = st.text_input("Enter a custom topic for the dialogue", "Ordering food at a restaurant")
 
