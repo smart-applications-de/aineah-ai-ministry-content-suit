@@ -322,21 +322,21 @@ class LanguageComprehensionCrew:
         ]
 
         task_write_text = Task(
-            description=f"Write a text passage of appropriate length (A1/A2: ~150 words, B1/B2: ~300 words, C1/C2: ~500 words) in {self.target_language} about '{self.scope}' for a {self.level} learner.",
+            description=f"Write a text passage of appropriate length (A1/A2: ~ 200 words, B1/B2: ~400 words, C1/C2: ~500 words) in {self.target_language} about '{self.scope}' for a {self.level} learner.",
             agent=agents[0],
             expected_output="A well-written text passage in markdown format."
         )
         task_create_questions = Task(
-            description=f"Based on the provided text, create 5-7 reading comprehension questions that meet Goethe-Institut standards for level {self.level}. Include a mix of question types. The questions and instructions must be in {self.native_language}.",
+            description=f"Based on the provided text, create 10-12 reading comprehension questions that meet Goethe-Institut standards for level {self.level}. Include a mix of question types. The questions and instructions must be in {self.target_language}.",
             agent=agents[1],
             context=[task_write_text],
             expected_output="A complete set of questions and a separate answer key in markdown."
         )
         task_compile = Task(
-            description="Combine the text passage and the questions into a single document. Then, create a separate section at the end titled 'Answer Key' with clear solutions for all questions.",
+            description=f"Combine the text passage and the questions into a single document. Then, create a separate section at the end titled 'Answer Key' with clear solutions for all questions in {self.target_language}.",
             agent=agents[2],
             context=[task_write_text, task_create_questions],
-            expected_output="A complete, beautifully formatted markdown document containing the full reading comprehension exercise and a comprehensive answer key.",
+            expected_output=f"A complete, beautifully formatted markdown document containing the full reading comprehension exercise and a comprehensive answer key in {self.target_language}.",
             output_file="reading_comprehension.md"
         )
 
