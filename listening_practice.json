@@ -1,0 +1,70 @@
+```json
+{
+  "transcript": "**Dialogue: Politique en France**\n\n**Speaker A:** Bonjour, tu regardes les informations ?\n\n**Speaker B:** Oui, il y a les élections présidentielles bientôt.\n\n**Speaker A:**  Ah oui, c'est vrai !  Tu sais qui va gagner ?\n\n**Speaker B:**  Je ne sais pas.  Il y a beaucoup de candidats.  J'ai entendu parler de Macron et Le Pen.\n\n**Speaker A:**  Macron, oui, je le connais.  Et Le Pen ?  C'est une femme politique, non ?\n\n**Speaker B:** Oui, elle est du parti d'extrême droite.\n\n**Speaker A:**  Ah, d'accord.  Et toi, tu vas voter ?\n\n**Speaker B:**  Oui, bien sûr ! C'est important de voter.\n\n**Speaker A:**  Je suis d'accord.  Il faut participer à la démocratie.\n\n**Speaker B:**  Exactement.  On verra qui va gagner !",
+  "questions": {
+    "1": {
+      "question": "What are the two speakers talking about?",
+      "options": {
+        "a": "The weather",
+        "b": "A football match",
+        "c": "The presidential elections"
+      },
+      "answer": "c"
+    },
+    "2": {
+      "question": "When are the elections?",
+      "options": {
+        "a": "Last week",
+        "b": "Soon",
+        "c": "Next year"
+      },
+      "answer": "b"
+    },
+    "3": {
+      "question": "How many candidates are there?",
+      "options": {
+        "a": "One",
+        "b": "Two",
+        "c": "Many"
+      },
+      "answer": "c"
+    },
+    "4": {
+      "question": "What is the name of one of the female candidates mentioned?",
+      "options": {
+        "a": "Macron",
+        "b": "Le Pen",
+        "c": "Neither of them is a woman"
+      },
+      "answer": "b"
+    },
+    "5": {
+      "question": "What political party does Le Pen belong to?",
+      "options": {
+        "a": "The Socialist Party",
+        "b": "A far-right party",
+        "c": "A center-left party"
+      },
+      "answer": "b"
+    },
+    "6": {
+      "question": "Does Speaker B plan to vote?",
+      "options": {
+        "a": "No",
+        "b": "Yes",
+        "c": "Maybe"
+      },
+      "answer": "b"
+    },
+    "7": {
+      "question": "Why is voting important according to the speakers?",
+      "options": {
+        "a": "To win a prize",
+        "b": "To participate in democracy",
+        "c": "To meet new people"
+      },
+      "answer": "b"
+    }
+  }
+}
+```

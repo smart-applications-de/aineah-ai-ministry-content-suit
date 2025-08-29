@@ -7,9 +7,9 @@ import re
 import json
 import pandas as pd
 from crewai import Agent, Task, Crew, Process, LLM
-
-from main  import  get_available_models, render_download_buttons,LANGUAGES
-
+import io
+from main import get_available_models, render_download_buttons, LANGUAGES, voice_names
+import wave
 st.session_state['SCOPES']=[
     "Personal Information & Greetings", "Bible", "Christian", "Greetings", "Politics", "Socia Media",
     "Music", "Film", "Jesus", "Religion", "School", "Climate", "Vacation/ Holiday", "Travel & adventure",
@@ -51,6 +51,16 @@ def parse_json_from_text(text):
     except json.JSONDecodeError:
         st.warning("Could not parse the AI's JSON response. It may not be a clean JSON object.")
         return None
+def pcm_to_wav(pcm_data, channels=1, sample_width=2, sample_rate=24000):
+    """Converts raw PCM data to a WAV file in memory."""
+    buffer = io.BytesIO()
+    with wave.open(buffer, 'wb') as wf:
+        wf.setnchannels(channels)
+        wf.setsampwidth(sample_width)
+        wf.setframerate(sample_rate)
+        wf.writeframes(pcm_data)
+    buffer.seek(0)
+    return buffer.getvalue()
 
 
 # ==============================================================================
@@ -168,28 +178,33 @@ class LanguageListeningCrew:
 
     def run(self, topic):
         agents = [
-            Agent(role='Dialogue Scriptwriter for Language Learning',
-                  goal=f"Create a short, natural-sounding dialogue or monologue in {self.target_language} about {topic}, appropriate for a {self.level} learner.",
-                  backstory="You are an experienced writer for language learning audio courses. You create content that is both educational and engaging, perfectly matching the specified CEFR level.",
-                  llm=self.llm, verbose=True),
-            Agent(role='Goethe-Institut Exam Designer',
-                  goal=f"Create a set of listening comprehension questions based on a provided transcript that meet Goethe-Institut standards for the {self.level} level.",
-                  backstory="You have years of experience designing official Goethe-Zertifikat exams. You know exactly how to formulate questions (e.g., multiple choice, true/false) that accurately test listening skills.",
-                  llm=self.llm, verbose=True)
+            Agent(role='Dialogue Scriptwriter for Language Learning', goal=f"Create a short, natural-sounding two-speaker dialogue in {self.target_language} about {topic}, appropriate for a {self.level} learner. The speakers should be named Speaker A and Speaker B.", backstory="You are an experienced writer for language learning audio courses. You create content that is both educational and engaging, perfectly matching the specified CEFR level.", llm=self.llm, verbose=True),
+            Agent(role='Goethe-Institut Exam Designer', goal=f"Create a set of listening comprehension questions based on a provided transcript that meet Goethe-Institut standards for the {self.level} level.", backstory="You have years of experience designing official Goethe-Zertifikat exams. You know exactly how to formulate questions that accurately test listening skills.", llm=self.llm, verbose=True),
+            Agent(role='Content Compiler', goal="Combine the transcript and questions into a single, structured JSON object.", backstory="You are a meticulous content organizer, ensuring data is perfectly structured for application use.", llm=self.llm, verbose=True)
         ]
-        task_script = Task(
-            description=f"Write a short audio script (approx. 150-200 words for A1/A2, 250-300 for B1/B2, 400+ for C1/C2) in {self.target_language} about {topic}. The language must be natural and appropriate for the {self.level}.",
-            agent=agents[0], expected_output="The full text of the audio script in markdown.")
-        task_questions = Task(
-            description=f"Based on the provided audio script, create 8-10 listening comprehension questions that meet Goethe-Institut standards for level {self.level}. Include a mix of question types like multiple choice and true/false. Provide a separate answer key. The questions and instructions must be in {self.target_language}.",
-            agent=agents[1], context=[task_script],
-            expected_output="A full audio script,complete set of questions and a separate answer key in markdown. You Must provide a full audio script, a complete set of questions and Answers in  a clean Markdown.",
-            output_file="listening_practice.md")
+        task_script = Task(description=f"Write a short audio script (approx. 150-200 words for A1/A2, 250-300 for B1/B2 and and 400+ for C1/C2) in {self.target_language}   about {topic}. It must be a dialogue between 'Speaker A' and 'Speaker B'.", agent=agents[0], expected_output="The full text of the audio script in markdown, with speaker labels.")
+        task_questions = Task(description=f"Based on the provided audio script, create 10-12  listening comprehension questions that meet Goethe-Institut standards for level {self.level}. Provide a separate answer key. The questions and instructions must be in {self.target_language}.", agent=agents[1], context=[task_script], expected_output="A complete set of questions and a separate answer key in markdown.")
+        task_compile = Task(description="Combine the audio transcript and the questions/answers into a single JSON object. The JSON must have two keys: 'transcript' and 'questions'. The final output MUST be ONLY the raw JSON object.", agent=agents[2], context=[task_script, task_questions], expected_output="A single, clean JSON object with 'transcript' and 'questions' keys.", output_file="listening_practice.json")
 
-        crew = Crew(agents=agents, tasks=[task_script, task_questions], process=Process.sequential, verbose=True)
+        crew = Crew(agents=agents, tasks=[task_script, task_questions, task_compile], process=Process.sequential, verbose=True)
         crew.kickoff()
-        with open("listening_practice.md", "r", encoding="utf-8") as f:
-            return f.read()
+        with open("listening_practice.json", "r", encoding="utf-8") as f:
+            return parse_json_from_text(f.read())
+
+    @staticmethod
+    def generate_audio(tts_model_name, transcript, speaker_configs):
+        try:
+            from main import  genai,types, pcm_to_wav
+            from google import genai as gen
+            from google.genai import types
+            client = gen.Client(api_key=st.session_state.get('gemini_key', ''))
+            response = client.models.generate_content(
+                model=tts_model_name, contents=[transcript],
+                config=types.GenerateContentConfig(response_modalities=["AUDIO"], speech_config=types.SpeechConfig(multi_speaker_voice_config=types.MultiSpeakerVoiceConfig(speaker_voice_configs=speaker_configs)))
+            )
+            return response.candidates[0].content.parts[0].inline_data.data
+        except Exception as e:
+            st.error(f"Audio generation failed: {e}"); return None
 
 
 class VocabularyCrew:
@@ -610,10 +625,21 @@ def render_language_academy_page():
     with tab5:
         try:
             st.header("Create a Custom Listening Exercise")
+            from google import genai as gen
+            from google.genai import types
             if 'listening_material' not in st.session_state: st.session_state.listening_material = None
             available_models = get_available_models(st.session_state.get('gemini_key'))
+            tts_models = get_available_models(st.session_state.get('gemini_key'), task="text-to-speech")
+            voices = voice_names
+            SCOPES = [
+                "Personal Information & Greetings", "Family & Friends", "Food & Drink", "At Home",
+                "Daily Routines", "Shopping", "Weather & Seasons", "Health", "Hobbies & Free Time",
+                "Travel & Directions",
+                "Work & Professions", "Education & University", "Technology & The Internet", "Media & News"
+            ]
 
             with st.form("listening_form"):
+                st.subheader("1. Generate Transcript & Questions")
                 col1, col2 = st.columns(2)
                 native_language_listen = col1.text_input("Your Language", "English", key="listen_native")
                 target_language_listen = col2.text_input("Language to Learn", "French", key="listen_target")
@@ -625,11 +651,11 @@ def render_language_academy_page():
                 use_scope = st.radio("Choose topic source:", ("Select from a list", "Enter a custom topic"),
                                      key="topic_source")
                 if use_scope == "Select from a list":
-                    topic_listen = st.selectbox("Select a Topic Scope",  st.session_state['SCOPES'])
+                    topic_listen = st.selectbox("Select a Topic Scope", SCOPES)
                 else:
                     topic_listen = st.text_input("Enter a custom topic for the dialogue", "Ordering food at a restaurant")
 
-                selected_model_listen = st.selectbox("Choose AI Model", available_models,
+                selected_model_listen = st.selectbox("Choose AI Model for Script Writing", available_models,
                                                      key="listen_model") if available_models else None
 
                 if st.form_submit_button("Generate Listening Practice", use_container_width=True):
@@ -644,11 +670,53 @@ def render_language_academy_page():
             if st.session_state.get('listening_material'):
                 st.markdown("---")
                 st.subheader(f"Your {target_language_listen} ({level_listen}) Listening Practice")
-                st.markdown(st.session_state.listening_material)
-                st.info(
-                    "💡 **Pro-Tip:** Copy the transcript text and use the **Text-to-Audio** tool in the **AI Audio Suite** to generate the audio for this exercise!")
-                render_download_buttons(st.session_state.listening_material,
-                                        f"{target_language_listen}_{level_listen}_listening_practice")
+
+                transcript = st.session_state.listening_material.get('transcript', 'No transcript generated.')
+                questions = st.session_state.listening_material.get('questions', 'No questions generated.')
+
+                st.text_area("Audio Transcript (Copy this to generate audio)", transcript, height=150,
+                             key="transcript_text")
+                st.json(questions)
+
+                st.markdown("---")
+                st.subheader("2. Generate Audio for Transcript")
+                with st.form("audio_generation_form"):
+                    col1, col2 = st.columns(2)
+                    speaker_a_name = col1.text_input("Name for Speaker A", "Speaker A")
+                    speaker_a_voice = col2.selectbox(f"Voice for {speaker_a_name}", voices, index=0)
+
+                    col3, col4 = st.columns(2)
+                    speaker_b_name = col3.text_input("Name for Speaker B", "Speaker B")
+                    speaker_b_voice = col4.selectbox(f"Voice for {speaker_b_name}", voices, index=1)
+
+                    tts_model = st.selectbox("Choose Audio AI Model", tts_models) if tts_models else None
+
+                    if st.form_submit_button("Generate Audio", use_container_width=True):
+                        if not tts_model:
+                            st.error("Please select an audio model.")
+                        else:
+                            with st.spinner("🎙️ The AI is recording your audio..."):
+                                # Replace generic speaker names in transcript with user-defined names for TTS
+                                try:
+                                    final_transcript = transcript.replace("Speaker A:", f"{speaker_a_name}:").replace(
+                                        "Speaker B:", f"{speaker_b_name}:")
+
+                                    speaker_configs = [
+                                        types.SpeakerVoiceConfig(speaker=speaker_a_name, voice_config=types.VoiceConfig(
+                                            prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name=speaker_a_voice))),
+                                        types.SpeakerVoiceConfig(speaker=speaker_b_name, voice_config=types.VoiceConfig(
+                                            prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name=speaker_b_voice)))
+                                    ]
+                                    st.session_state['audio_data_l']= LanguageListeningCrew.generate_audio(tts_model, final_transcript,
+                                                                                      speaker_configs)
+                                except Exception as error:
+                                    st.error(error)
+                    if st.session_state.get('audio_data_l') and  st.session_state.listening_material.get('transcript'):
+                        st.success("Audio Generated!")
+                        wav_bytes = pcm_to_wav(st.session_state.get('audio_data_l'), channels=1, sample_width=2,
+                                               sample_rate=24000)
+                        st.audio(wav_bytes, format='audio/wav')
+
         except Exception as error5:
             st.error(error5)
 
