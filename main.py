@@ -28,6 +28,7 @@ import streamlit.components.v1 as components
 
 import  language as  l
 import crew_utis
+import general as ge
 from general import render_swimming_page, render_fitness_page, render_driving_license_page, render_language_academy_page
 from user_guid import render_user_guide_page
 from stock_health import  render_health_support_page, render_stock_analyzer_page
@@ -1580,7 +1581,8 @@ def main():
         "Street Evangelism": "✝️","AI Stock Analysis Studio":"📈", "AI Health & Wellness Suite":"❤️‍🩹",
         "AI Swimming Coach": "🏊",
         "AI Fitness Trainer": "🏋️",
-        "AI Driving License Guide": "🚗"
+        "AI Driving License Guide": "🚗",
+        "AI Tax Advisor": "📈"
     }
     selection = st.sidebar.radio("Go to", list(page_options.keys()))
     
@@ -1594,7 +1596,8 @@ def main():
         "Street Evangelism": ['gemini_key', 'serper_key'],
         "AI Swimming Coach": ['gemini_key', 'serper_key'],
         "AI Fitness Trainer": ['gemini_key', 'serper_key'],
-        "AI Driving License Guide": ['gemini_key', 'serper_key']
+        "AI Driving License Guide": ['gemini_key', 'serper_key'],
+        "AI Tax Advisor": ['gemini_key', 'serper_key']
     }
 
     if selection not in ["Home", "User Guide & Help"] and not all(st.session_state.get(key) for key in keys_needed.get(selection, [])):
@@ -1658,6 +1661,8 @@ def main():
         render_fitness_page()
     elif selection == "AI Driving License Guide":
         render_driving_license_page()
+    elif selection == "AI Tax Advisor":
+        ge.render_tax_advisor_page()
 
 if __name__ == "__main__":
     main()

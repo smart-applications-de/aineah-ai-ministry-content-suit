@@ -14,8 +14,9 @@ from crewai_tools import SerperDevTool
 from google import genai
 import docx
 import markdown2
+from datetime import datetime
 from main_v2 import  get_available_models, render_download_buttons,LANGUAGES
-
+import pypdf
 def calculate_bmi(weight_kg, height_cm):
     """Calculates BMI from weight in kg and height in cm."""
     if height_cm == 0:
@@ -569,6 +570,257 @@ def render_driving_license_page():
         st.markdown(st.session_state.driving_guide)
         render_download_buttons(st.session_state.driving_guide,
                                 f"driving_guide_{country.lower()}_{license_class.lower()}")
+
+
+class TaxAdvisorCrew:
+    def __init__(self, model_name, language):
+        os.environ["GOOGLE_API_KEY"] = st.session_state.get('gemini_key', '')
+        os.environ["SERPER_API_KEY"] = st.session_state.get('serper_key', '')
+        self.llm = LLM(model=model_name, temperature=0.7, api_key=os.environ["GOOGLE_API_KEY"])
+        self.language = language
+
+    def run_clarification_crew(self, tax_class, user_question, document_context):
+        agents = [
+            Agent(role='Tax Document Specialist',
+                  goal="Analyze the user-provided tax document context to extract all relevant figures, dates, and key information.",
+                  backstory="You are an AI assistant modeled after a meticulous 'Steuerfachangestellte(r)'. You are an expert at reading and interpreting German tax documents.",
+                  llm=self.llm, verbose=True),
+            Agent(role='German Tax Law Expert',
+                  goal=f"Research and provide a detailed analysis of the user's tax situation based on their question, document, and Steuerklasse {tax_class}. Focus on the laws for the current or most recent tax year.",
+                  backstory="You are an AI expert modeled after a specialist in German tax law ('Steuerrecht'). You are always up-to-date with the latest changes.",
+                  llm=self.llm, tools=[SerperDevTool()], verbose=True),
+            Agent(role='Senior Steuerberater (Tax Advisor)',
+                  goal=f"Synthesize all the analysis into a comprehensive, easy-to-understand, and actionable advisory report in {self.language}.",
+                  backstory="You are an AI assistant with the persona of an experienced German Steuerberater. You provide expert-level guidance and suggest clear next steps.",
+                  llm=self.llm, verbose=True)
+        ]
+
+        task1 = Task(
+            description=f"Analyze the following context from a user's tax document: '{document_context}'. Identify and list all key financial figures and personal data.",
+            agent=agents[0],
+            expected_output="A structured list of all relevant data points extracted from the document context.")
+        task2 = Task(
+            description=f"Based on the extracted data, the user's question ('{user_question}'), and their tax class ({tax_class}), research the relevant German tax laws. Provide an expert analysis covering potential deductions and obligations.",
+            agent=agents[1], context=[task1],
+            expected_output="A detailed analysis of the tax situation with references to relevant regulations.")
+        task3 = Task(
+            description=f"Compile a final advisory report in {self.language}. Start by directly answering the user's question. Then, summarize the key findings. Conclude with a clear 'Recommended Next Steps' section.",
+            agent=agents[2], context=[task2],
+            expected_output="The final, comprehensive, and user-friendly advisory report in markdown format.",
+            output_file="tax_advice.md")
+
+        crew = Crew(agents=agents, tasks=[task1, task2, task3], process=Process.sequential, verbose=True)
+        crew.kickoff()
+        with open("tax_advice.md", "r", encoding="utf-8") as f:
+            return f.read()
+
+    def run_elster_guide_crew(self, tax_form, tax_year):
+        agents = [
+            Agent(role='German Tax Form Expert',
+                  goal=f"Provide a detailed, line-by-line explanation of the German tax form '{tax_form}' for the tax year {tax_year}.",
+                  backstory=f"You are an AI expert who has memorized every line of the German tax forms for the last decade, including the official instructions from the Bundesfinanzministerium.",
+                  llm=self.llm, tools=[SerperDevTool()], verbose=True),
+            Agent(role='ELSTER Software Tutor',
+                  goal="Translate the form explanation into a practical, step-by-step guide for filling out the form in the ELSTER software.",
+                  backstory="You are an expert tutor for the ELSTER online tax portal. You know how to navigate the software and provide clear, actionable instructions and best-practice tips.",
+                  llm=self.llm, verbose=True)
+        ]
+
+        task1 = Task(
+            description=f"Research and list all the questions and required fields for the German tax form '{tax_form}' for the year {tax_year}. For each field, provide a brief explanation of what information is required.",
+            agent=agents[0],
+            expected_output="A comprehensive list of all fields in the specified tax form with explanations.")
+        task2 = Task(
+            description=f"Convert the list of questions and fields into a step-by-step guide for using the ELSTER portal. For each point, explain where to find it in ELSTER and give a 'Best Practice Tip' on how to answer it correctly. The entire guide must be in {self.language}.",
+            agent=agents[1], context=[task1],
+            expected_output="A complete, step-by-step ELSTER guide in markdown format.", output_file="elster_guide.md")
+
+        crew = Crew(agents=agents, tasks=[task1, task2], process=Process.sequential, verbose=True)
+        crew.kickoff()
+        with open("elster_guide.md", "r", encoding="utf-8") as f:
+            return f.read()
+
+
+class SalaryAnalysisCrew:
+    def __init__(self, model_name, language, country, salary, period, **kwargs):
+        os.environ["GOOGLE_API_KEY"] = st.session_state.get('gemini_key', '')
+        os.environ["SERPER_API_KEY"] = st.session_state.get('serper_key', '')
+        self.llm = LLM(model=model_name, temperature=0.7, api_key=os.environ["GOOGLE_API_KEY"])
+        self.language = language
+        self.country = country
+        self.salary = salary
+        self.period = period
+        self.details = kwargs
+
+    def run(self):
+        current_year = datetime.now().year
+
+        agents = [
+            Agent(role='International Payroll Specialist',
+                  goal="Calculate the user's annual gross salary and structure the initial data for the tax expert.",
+                  backstory="You are an expert in global payroll standards. You understand various pay periods and can accurately annualize salaries.",
+                  llm=self.llm, verbose=True),
+            Agent(role=f'Tax Law Expert for {self.country} ({current_year})',
+                  goal=f"Research and provide a detailed breakdown of all mandatory tax and social security deductions for {self.country} for the current tax year, {current_year}.",
+                  backstory=f"You are an expert in tax and social security laws for various countries, with a special focus on {self.country}. You are always up-to-date with the latest {current_year} rates and thresholds.",
+                  llm=self.llm, tools=[SerperDevTool()], verbose=True),
+            Agent(role='Financial Analyst & Content Editor',
+                  goal=f"Calculate the net salary, create a detailed payslip, and explain each deduction clearly in {self.language}, referencing the current year's rules.",
+                  backstory="You are a skilled financial analyst who can transform complex calculations into a simple, easy-to-understand payslip. You are also a gifted communicator, able to explain financial concepts to a layperson.",
+                  llm=self.llm, verbose=True)
+        ]
+
+        context_details = f"Country: {self.country}, Gross Salary: {self.salary} ({self.period}), Language: {self.language}, Tax Year: {current_year}."
+        if self.country == "Germany":
+            context_details += f" State: {self.details.get('state', 'N/A')}, Tax Class: {self.details.get('tax_class', 'N/A')}, Church Member: {'Yes' if self.details.get('church_tax') else 'No'}."
+
+        task1 = Task(description=f"Based on the user's input ({context_details}), determine the annual gross salary.",
+                     agent=agents[0], expected_output="The calculated annual gross salary as a single number.")
+        task2 = Task(
+            description=f"Based on the user's details ({context_details}), find all applicable tax rates, social security contributions, and their respective income thresholds (Beitragsbemessungsgrenze) for the year {current_year}. For Germany, include Lohnsteuer, Solidaritätszuschlag, Kirchensteuer, Rentenversicherung, Arbeitslosenversicherung, Krankenversicherung, and Pflegeversicherung.",
+            agent=agents[1],
+            expected_output=f"A structured list of all deductions with their {current_year} percentages and income thresholds.")
+        task3 = Task(
+            description=f"Using the annual gross salary and the {current_year} deduction rates, create a comprehensive payslip. Calculate each deduction, the total deductions, and the final net monthly salary. Then, add a section explaining each deduction in simple terms, explicitly mentioning that these calculations are based on {current_year} rules. The entire output must be in {self.language}.",
+            agent=agents[2], context=[task1, task2],
+            expected_output="A complete, beautifully formatted markdown document containing the detailed payslip and explanations.",
+            output_file="payslip.md")
+
+        crew = Crew(agents=agents, tasks=[task1, task2, task3], process=Process.sequential, verbose=True)
+        crew.kickoff()
+        with open("payslip.md", "r", encoding="utf-8") as f:
+            return f.read()
+
+
+# ==============================================================================
+## 3. Page Rendering Functions
+# ==============================================================================
+
+def render_tax_advisor_page():
+    st.title(" fiscally.AI 🇩🇪")
+    st.markdown("Your AI-powered assistant for German tax clarification and salary calculations.")
+
+    st.error(
+        "**⚠️ IMPORTANT DISCLAIMER:** This tool is an AI assistant and does **NOT** provide legally binding tax or financial advice. Always consult with a certified professional.",
+        icon="❗")
+
+    if 'tax_advice' not in st.session_state: st.session_state.tax_advice = None
+    if 'elster_guide' not in st.session_state: st.session_state.elster_guide = None
+    if 'payslip' not in st.session_state: st.session_state.payslip = None
+
+    available_models = get_available_models(st.session_state.get('gemini_key'))
+    LANGUAGES = ("English", "German")
+
+    tab1, tab2, tab3 = st.tabs(
+        ["**General Tax Clarification**", "**ELSTER Form Guide**", "**Salary & Net Pay Calculator**"])
+
+    with tab1:
+        st.header("Analyze a Document or Ask a Question")
+        with st.form("tax_form"):
+            uploaded_file = st.file_uploader("Upload your tax document (optional)", type=['pdf', 'png', 'jpg', 'jpeg'])
+            col1, col2 = st.columns(2)
+            tax_class = col1.selectbox("Select Your Steuerklasse (Tax Class):", ["I", "II", "III", "IV", "V", "VI"])
+            language = col2.selectbox("Language for the Response:", LANGUAGES)
+            user_question = st.text_area("Enter your specific question:", height=100,
+                                         placeholder="e.g., Can I deduct my home office expenses?")
+            selected_model = st.selectbox("Choose AI Model:", available_models) if available_models else None
+
+            if st.form_submit_button("Get Tax Analysis", use_container_width=True):
+                if not user_question and not uploaded_file:
+                    st.error("Please enter a question or upload a document.")
+                elif not selected_model:
+                    st.error("Please select a model.")
+                else:
+                    document_context = ""
+                    if uploaded_file is not None:
+                        with st.spinner("Analyzing your document..."):
+                            if uploaded_file.type == "application/pdf":
+                                pdf_reader = pypdf.PdfReader(uploaded_file)
+                                for page in pdf_reader.pages: document_context += page.extract_text()
+                            else:
+                                document_context = "User has uploaded an image document."
+
+                    with st.spinner(f"The AI tax team is preparing your analysis..."):
+                        crew = TaxAdvisorCrew(selected_model, language)
+                        st.session_state.tax_advice = crew.run_clarification_crew(tax_class, user_question,
+                                                                                  document_context)
+
+        if st.session_state.get('tax_advice'):
+            st.markdown("---");
+            st.header("Your AI-Generated Tax Report");
+            st.markdown(st.session_state.tax_advice)
+            render_download_buttons(st.session_state.tax_advice, "tax_advice_report")
+
+    with tab2:
+        st.header("Get a Step-by-Step Guide for Your Tax Forms")
+        GERMAN_TAX_FORMS = ["Anlage N (Employment Income)", "Anlage V (Rental Income)", "Anlage KAP (Capital Gains)",
+                            "Anlage SO (Other Income)", "Anlage G (Business Income)", "Anlage S (Freelance Income)"]
+
+        with st.form("elster_form"):
+            tax_form = st.selectbox("Select the Tax Form (Anlage):", GERMAN_TAX_FORMS)
+            tax_year = st.number_input("Enter the Tax Year:", min_value=2020, max_value=datetime.now().year,
+                                       value=datetime.now().year - 1)
+            language = st.selectbox("Language for the Guide:", LANGUAGES, key="elster_lang")
+            selected_model = st.selectbox("Choose AI Model:", available_models,
+                                          key="elster_model") if available_models else None
+
+            if st.form_submit_button("Generate ELSTER Guide", use_container_width=True):
+                if not all([tax_form, tax_year, language, selected_model]):
+                    st.error("Please fill all fields and select a model.")
+                else:
+                    with st.spinner(f"The AI tax experts are creating your guide for {tax_form}..."):
+                        crew = TaxAdvisorCrew(selected_model, language)
+                        st.session_state.elster_guide = crew.run_elster_guide_crew(tax_form, tax_year)
+
+        if st.session_state.get('elster_guide'):
+            st.markdown("---");
+            st.header(f"Your ELSTER Guide for {tax_form}")
+            st.markdown(st.session_state.elster_guide)
+            render_download_buttons(st.session_state.elster_guide, "elster_guide")
+
+    with tab3:
+        st.header("Calculate Your Estimated Net Salary")
+        with st.form("salary_form"):
+            col1, col2 = st.columns(2)
+            country = col1.text_input("Country", "Germany")
+            language = col2.selectbox("Language for Response:", LANGUAGES, key="salary_lang")
+
+            col3, col4 = st.columns(2)
+            salary = col3.number_input("Gross Salary", min_value=0.0, value=50000.0, step=1000.0)
+            period = col4.selectbox("Pay Period", ["Annually", "Monthly"])
+
+            german_details = {}
+            if country.lower() == 'germany':
+                st.subheader("German Tax Details (Angestellte)")
+                col5, col6 = st.columns(2)
+                german_details['state'] = col5.selectbox("State (Bundesland):",
+                                                         ["Baden-Württemberg", "Bavaria (Bayern)", "Berlin",
+                                                          "Brandenburg", "Bremen", "Hamburg", "Hesse (Hessen)",
+                                                          "Lower Saxony (Niedersachsen)", "Mecklenburg-Vorpommern",
+                                                          "North Rhine-Westphalia (NRW)",
+                                                          "Rhineland-Palatinate (Rheinland-Pfalz)", "Saarland",
+                                                          "Saxony (Sachsen)", "Saxony-Anhalt (Sachsen-Anhalt)",
+                                                          "Schleswig-Holstein", "Thuringia (Thüringen)"])
+                german_details['tax_class'] = col6.selectbox("Steuerklasse (Tax Class):",
+                                                             ["I", "II", "III", "IV", "V", "VI"])
+                german_details['church_tax'] = st.checkbox("Are you a member of a church that collects church tax?")
+
+            selected_model = st.selectbox("Choose AI Model:", available_models,
+                                          key="salary_model") if available_models else None
+
+            if st.form_submit_button("Calculate Net Salary", use_container_width=True):
+                if not all([country, language, salary, selected_model]):
+                    st.error("Please fill all required fields and select a model.")
+                else:
+                    with st.spinner(f"The AI finance team is calculating your net pay..."):
+                        crew = SalaryAnalysisCrew(selected_model, language, country, salary, period, **german_details)
+                        st.session_state.payslip = crew.run()
+
+        if st.session_state.get('payslip'):
+            st.markdown("---");
+            st.header(f"Your Estimated Payslip")
+            st.markdown(st.session_state.payslip)
+            render_download_buttons(st.session_state.payslip, "salary_payslip")
 
 
 class LessonPlannerCrew:
