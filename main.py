@@ -32,6 +32,7 @@ import general as ge
 from general import render_swimming_page, render_fitness_page, render_driving_license_page, render_language_academy_page
 from user_guid import render_user_guide_page
 from stock_health import  render_health_support_page, render_stock_analyzer_page
+import record as rec
 # This file holds global configurations and variables for your app.
 voice_names = [
     "Zephyr",
@@ -1577,7 +1578,7 @@ def main():
         "Home": "🏠", "User Guide & Help": "💡", "Sermon Generator": "📖", "Flyer Production Studio": "🚀", "Image  Studio": "🖼️", "Worship Song Studio": "🎶",
         "Book Writing Studio": "📚", "Bible Book Study": "🌍", "Bible Topic Study": "🙏", "Newsroom HQ": "📰", 
         "Viral Video Series Studio": "🎬", "Single Video Studio": "📹", "AI Podcast Studio": "🎙️", "AI Chef Studio": "🍳", 
-        "AI Language Academy": "🗣️", "AI Tutor (Grades 1-12)": "🎓", "University AI Professor": "🧑‍🏫", "AI Audio Suite": "🎧",
+        "AI Language Academy": "🗣️", "AI Tutor (Grades 1-12)": "🎓", "University AI Professor": "🧑‍🏫", "AI Audio Suite": "🎧", "Live Audio Recorder": "🎙️",
         "Street Evangelism": "✝️","AI Stock Analysis Studio":"📈", "AI Health & Wellness Suite":"❤️‍🩹",
         "AI Swimming Coach": "🏊",
         "AI Fitness Trainer": "🏋️",
@@ -1635,6 +1636,7 @@ def main():
             """)
 
     elif selection == "User Guide & Help":  main_render_user_guide_page()
+    elif selection == "Live Audio Recorder": rec.render_Live_Audio()
     elif selection == "Sermon Generator": render_sermon_page()
     elif selection == "Flyer Production Studio": render_flyer_page()
     elif selection == "Image  Studio": render_image_editing_page()
