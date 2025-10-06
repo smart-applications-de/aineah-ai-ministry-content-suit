@@ -28,3 +28,4 @@ pysqlite3-binary
 pydf
 markdown2
 yfinance
+pvrecorder
